@@ -1,0 +1,78 @@
+---
+import '@fontsource-variable/archivo/wdth.css';
+import '@fontsource/fragment-mono';
+import '../styles/global.css';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import { SITE, href } from '../lib/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Path for canonical URL, e.g. "/technology/" */
+  path?: string;
+  /** Exclude from search indexing (error pages) */
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description = SITE.description,
+  path = '/',
+  noindex = false,
+} = Astro.props;
+
+const pageTitle = title ? `${title} — ${SITE.name}` : `${SITE.name} — ${SITE.tagline}`;
+const canonical = new URL(href(path), Astro.site).href;
+const ogImage = new URL(href('/og.png'), Astro.site).href;
+
+const orgSchema = JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: SITE.name,
+  url: new URL(href('/'), Astro.site).href,
+  email: SITE.contactEmail,
+  founder: { '@type': 'Person', name: SITE.founder },
+  description: SITE.description,
+});
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
+    <link rel="icon" type="image/svg+xml" href={href('/favicon.svg')} />
+    <link rel="sitemap" href={href('/sitemap-index.xml')} />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="theme-color" content="#08090b" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <script is:inline>document.documentElement.classList.add('js');</script>
+    <script is:inline type="application/ld+json" set:html={orgSchema} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <Nav />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+    <script src="../scripts/site.js"></script>
+  </body>
+</html>

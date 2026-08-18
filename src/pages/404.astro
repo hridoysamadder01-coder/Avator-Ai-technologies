@@ -1,0 +1,59 @@
+---
+import Base from '../layouts/Base.astro';
+import { href } from '../lib/site';
+---
+
+<Base title="Not found" description="This route does not exist in the AVATOR system." path="/404/" noindex>
+  <section class="nf dots-bg">
+    <div class="shell">
+      <p class="mono sig nf-code rv">ERR·404 — route not found</p>
+      <h1 class="nf-title kin">This path leads outside the system.</h1>
+      <p class="lede rv" style="--rv-d: 0.2s">
+        The page you asked for doesn't exist — or doesn't exist yet. Everything
+        that does is reachable from here.
+      </p>
+      <div class="hero-cta rv" style="--rv-d: 0.3s">
+        <a class="btn btn--solid" href={href('/')}>
+          Return home <span class="tick" aria-hidden="true">→</span>
+        </a>
+        <a class="btn" href={href('/technology/')}>
+          The technology <span class="tick" aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .nf {
+    min-height: 82svh;
+    display: grid;
+    align-items: center;
+    padding-block: 9rem 4rem;
+  }
+
+  .nf-code {
+    letter-spacing: 0.24em;
+    margin-bottom: 1.6rem;
+  }
+
+  .nf-title {
+    font-size: clamp(2.4rem, 7vw, 5.5rem);
+    line-height: 1;
+    font-weight: 560;
+    font-stretch: 112%;
+    letter-spacing: -0.02em;
+    max-width: 12em;
+  }
+
+  .nf .lede {
+    margin-top: 1.4rem;
+  }
+
+  .hero-cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+    margin-top: 2.4rem;
+  }
+</style>

@@ -1,0 +1,116 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import PageIntro from '../../components/PageIntro.astro';
+import { href, statusKey } from '../../lib/site';
+
+const work = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
+---
+
+<Base
+  title="Work"
+  description="Selected systems from the AVATOR engineering practice — operations platforms, market-signal experiments, education systems and commissioned interfaces."
+  path="/work/"
+>
+  <PageIntro
+    eyebrow="Work — selected systems"
+    title="Built things, not brochures."
+    lede="A selection of systems from our engineering practice. Each one is real, each status is accurate, and case studies publish only as the work permits."
+  />
+
+  <div class="shell">
+    <div class="work-list">
+      {work.map((wk, i) => (
+        <a class="work-row rv" style={`--rv-d: ${Math.min(i * 0.06, 0.3)}s`} href={href(`/work/${wk.id}/`)}>
+          <span class="mono steel wr-code">{wk.data.designation}</span>
+          <div class="wr-main">
+            <h2 class="h2">{wk.data.title}</h2>
+            <p class="dim wr-sum">{wk.data.summary}</p>
+          </div>
+          <div class="wr-side">
+            <span class="chip" data-state={statusKey(wk.data.status)}>{wk.data.status}</span>
+            <span class="mono steel wr-disc">{wk.data.discipline}</span>
+          </div>
+          <span class="wr-arrow" aria-hidden="true">→</span>
+        </a>
+      ))}
+    </div>
+
+    <p class="mono steel work-note rv">
+      Further systems publish as clients and confidentiality permit.
+    </p>
+  </div>
+</Base>
+
+<style>
+  .work-list {
+    border-top: 1px solid var(--line);
+  }
+
+  .work-row {
+    display: grid;
+    grid-template-columns: 6.5rem minmax(0, 1.6fr) minmax(0, 1fr) 2rem;
+    gap: clamp(1.5rem, 3vw, 3rem);
+    align-items: start;
+    padding-block: clamp(2rem, 5vh, 3.2rem);
+    border-bottom: 1px solid var(--line);
+    padding-inline: 0.8rem;
+    margin-inline: -0.8rem;
+    transition: background-color var(--sp-ui) var(--ease-out);
+  }
+
+  .work-row:hover {
+    background: var(--ink-1);
+  }
+
+  .wr-code {
+    letter-spacing: 0.18em;
+    padding-top: 0.55rem;
+  }
+
+  .wr-sum {
+    margin-top: 0.8rem;
+    max-width: 36em;
+    font-size: 0.98rem;
+  }
+
+  .wr-side {
+    display: grid;
+    gap: 0.8rem;
+    justify-items: start;
+  }
+
+  .wr-disc {
+    letter-spacing: 0.16em;
+  }
+
+  .wr-arrow {
+    color: var(--steel-dim);
+    justify-self: end;
+    padding-top: 0.55rem;
+    transition: color var(--sp-ui), transform var(--sp-ui) var(--ease-out);
+  }
+
+  .work-row:hover .wr-arrow {
+    color: var(--signal);
+    transform: translateX(4px);
+  }
+
+  .work-note {
+    padding-block: 2rem;
+    letter-spacing: 0.14em;
+  }
+
+  @media (max-width: 860px) {
+    .work-row {
+      grid-template-columns: 1fr auto;
+      grid-template-areas: 'code arrow' 'main main' 'side side';
+      row-gap: 1rem;
+    }
+
+    .wr-code { grid-area: code; padding-top: 0; }
+    .wr-main { grid-area: main; }
+    .wr-side { grid-area: side; grid-auto-flow: column; align-items: center; }
+    .wr-arrow { grid-area: arrow; padding-top: 0; }
+  }
+</style>

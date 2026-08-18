@@ -1,0 +1,147 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { PRODUCT_STATUS_LABEL, SITE, href } from '../../lib/site';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('products');
+  return entries.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+
+const statusLabel = PRODUCT_STATUS_LABEL;
+---
+
+<Base title={entry.data.name} description={entry.data.summary} path={`/products/${entry.id}/`}>
+  <article>
+    <header class="p-head dots-bg">
+      <div class="shell">
+        <p class="mono p-crumb rv">
+          <a href={href('/products/')}>Products</a>
+          <span aria-hidden="true"> / </span>
+          <span class="sig">{entry.data.designation}</span>
+        </p>
+        <h1 class="p-title kin">{entry.data.name}</h1>
+        <p class="lede rv" style="--rv-d: 0.2s">{entry.data.tagline}</p>
+        <div class="p-meta rv" style="--rv-d: 0.3s">
+          <span class="chip" data-state={entry.data.status}>{statusLabel[entry.data.status]}</span>
+          <span class="mono steel">{entry.data.category}</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="shell p-body">
+      <div class="prose rv">
+        <p class="lede">{entry.data.summary}</p>
+        <Content />
+      </div>
+
+      {
+        entry.data.plans && entry.data.plans.length > 0 && (
+          <aside class="plans rv" style="--rv-d: 0.1s" aria-label="Plans">
+            <p class="mono steel">Plans</p>
+            <ul>
+              {entry.data.plans.map((plan) => (
+                <li>
+                  <span class="h3">{plan.name}</span>
+                  {plan.price && <span class="mono sig">{plan.price}</span>}
+                  <p class="dim">{plan.description}</p>
+                </li>
+              ))}
+            </ul>
+          </aside>
+        )
+      }
+
+      <div class="p-cta rv" style="--rv-d: 0.15s">
+        <a
+          class="btn btn--solid"
+          href={`mailto:${SITE.contactEmail}?subject=${encodeURIComponent(`${entry.data.name} — access`)}`}
+        >
+          Request access <span class="tick" aria-hidden="true">→</span>
+        </a>
+        <a class="text-link" href={href('/products/')}>
+          All products <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .p-head {
+    padding-block: clamp(9rem, 18vh, 12rem) clamp(2.5rem, 6vh, 4rem);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .p-crumb {
+    letter-spacing: 0.2em;
+    color: var(--steel);
+    margin-bottom: 1.4rem;
+  }
+
+  .p-crumb a:hover {
+    color: var(--bone-0);
+  }
+
+  .p-title {
+    font-size: clamp(2.4rem, 7vw, 6rem);
+    line-height: 1;
+    font-weight: 560;
+    font-stretch: 114%;
+    letter-spacing: -0.02em;
+  }
+
+  .p-head .lede {
+    margin-top: 1.4rem;
+  }
+
+  .p-meta {
+    display: flex;
+    gap: 1.4rem;
+    align-items: center;
+    margin-top: 1.6rem;
+  }
+
+  .p-body {
+    padding-block: clamp(3rem, 8vh, 6rem);
+    display: grid;
+    gap: 3rem;
+    max-width: 60rem;
+  }
+
+  .prose {
+    color: var(--bone-1);
+    max-width: 40em;
+  }
+
+  .prose :global(p + p) {
+    margin-top: 1.2em;
+  }
+
+  .plans ul {
+    list-style: none;
+    margin: 1.4rem 0 0;
+    padding: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .plans li {
+    padding-block: 1.4rem;
+    border-bottom: 1px solid var(--line);
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .p-cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.6rem;
+    align-items: center;
+  }
+</style>

@@ -1,0 +1,285 @@
+---
+import { NAV, SITE, href } from '../lib/site';
+
+const current = Astro.url.pathname;
+const isActive = (path: string) => current.startsWith(href(path).replace(/\/$/, ''));
+---
+
+<header class="nav" data-nav>
+  <div class="nav-in shell">
+    <a class="brand" href={href('/')} aria-label={`${SITE.name} — home`}>
+      <svg class="brand-mark" width="26" height="26" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <path d="M16 3 29 29H3L16 3Z" stroke="currentColor" stroke-width="2" />
+        <path d="M9.5 20.5h13" stroke="var(--signal)" stroke-width="2" />
+      </svg>
+      <span class="brand-word">AVATOR</span>
+      <span class="brand-sub" aria-hidden="true">AI&nbsp;TECHNOLOGIES</span>
+    </a>
+
+    <nav class="links" aria-label="Primary">
+      {NAV.map((item, i) => (
+        <a
+          class="nav-link"
+          href={href(item.path)}
+          aria-current={isActive(item.path) ? 'page' : undefined}
+        >
+          <span class="nav-num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+          {item.label}
+        </a>
+      ))}
+    </nav>
+
+    <div class="nav-actions">
+      <a class="btn nav-cta" href={href('/contact/')}>
+        Talk to AVATOR <span class="tick" aria-hidden="true">→</span>
+      </a>
+      <button class="menu-btn" data-menu-btn aria-expanded="false" aria-controls="site-menu">
+        <span class="menu-label mono">Menu</span>
+        <span class="menu-ico" aria-hidden="true"><i></i><i></i></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="menu" id="site-menu" data-menu role="dialog" aria-modal="true" aria-label="Site menu" hidden>
+  <div class="menu-inner shell">
+    <nav aria-label="Menu">
+      <ul class="menu-list">
+        <li>
+          <a class="menu-link" href={href('/')}>
+            <span class="menu-num" aria-hidden="true">00</span>Home
+          </a>
+        </li>
+        {NAV.map((item, i) => (
+          <li>
+            <a class="menu-link" href={href(item.path)}>
+              <span class="menu-num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+              {item.label}
+            </a>
+          </li>
+        ))}
+        <li>
+          <a class="menu-link" href={href('/contact/')}>
+            <span class="menu-num" aria-hidden="true">07</span>Contact
+          </a>
+        </li>
+      </ul>
+    </nav>
+    <p class="menu-meta mono">{SITE.name} · {SITE.coordinates}</p>
+  </div>
+</div>
+
+<style>
+  .nav {
+    position: fixed;
+    inset-inline: 0;
+    top: 0;
+    z-index: 1000;
+    transition: background-color 0.4s, border-color 0.4s, backdrop-filter 0.4s;
+    border-bottom: 1px solid transparent;
+  }
+
+  .nav.scrolled {
+    background: color-mix(in srgb, var(--ink-0) 78%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom-color: var(--line);
+  }
+
+  .nav-in {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    height: 72px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    min-width: 0;
+  }
+
+  .brand-mark {
+    flex: none;
+    color: var(--bone-0);
+  }
+
+  .brand-word {
+    font-weight: 680;
+    font-stretch: 122%;
+    letter-spacing: 0.06em;
+    font-size: 1.05rem;
+  }
+
+  .brand-sub {
+    font-family: var(--f-mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.3em;
+    color: var(--steel);
+    transform: translateY(1px);
+  }
+
+  .links {
+    display: flex;
+    gap: clamp(1rem, 2.2vw, 2.2rem);
+  }
+
+  .nav-link {
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+    color: var(--bone-1);
+    display: inline-flex;
+    gap: 0.45em;
+    align-items: baseline;
+    padding-block: 0.4em;
+    transition: color 0.3s;
+  }
+
+  .nav-link:hover,
+  .nav-link:focus-visible,
+  .nav-link[aria-current='page'] {
+    color: var(--bone-0);
+  }
+
+  .nav-num {
+    font-family: var(--f-mono);
+    font-size: 0.55rem;
+    color: var(--steel-dim);
+    letter-spacing: 0.08em;
+    transition: color 0.3s;
+  }
+
+  .nav-link:hover .nav-num,
+  .nav-link[aria-current='page'] .nav-num {
+    color: var(--signal);
+  }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .nav-cta {
+    padding: 0.7em 1.2em;
+    font-size: 0.68rem;
+  }
+
+  .menu-btn {
+    display: none;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.5rem 0;
+  }
+
+  .menu-label {
+    color: var(--bone-1);
+    letter-spacing: 0.2em;
+  }
+
+  .menu-ico {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 5px;
+    width: 26px;
+  }
+
+  .menu-ico i {
+    height: 1px;
+    background: var(--bone-0);
+    transition: transform 0.35s var(--ease-out), opacity 0.3s;
+  }
+
+  .menu-btn[aria-expanded='true'] .menu-ico i:first-child {
+    transform: translateY(3px) rotate(45deg);
+  }
+
+  .menu-btn[aria-expanded='true'] .menu-ico i:last-child {
+    transform: translateY(-3px) rotate(-45deg);
+  }
+
+  /* full-screen menu */
+  .menu[hidden] {
+    display: none !important;
+  }
+
+  .menu {
+    position: fixed;
+    inset: 0;
+    z-index: 900;
+    background: rgba(8, 9, 11, 0.97);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: grid;
+    align-items: end;
+    opacity: 0;
+    transition: opacity 0.4s var(--ease-out);
+  }
+
+  .menu.open {
+    opacity: 1;
+  }
+
+  .menu-inner {
+    width: 100%;
+    padding-block: 7rem 3rem;
+  }
+
+  .menu-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .menu-link {
+    display: flex;
+    align-items: baseline;
+    gap: 1.1rem;
+    font-size: clamp(2rem, 8.5vw, 3.4rem);
+    font-weight: 600;
+    font-stretch: 112%;
+    letter-spacing: -0.02em;
+    line-height: 1.18;
+    color: var(--bone-0);
+    transition: color 0.25s;
+  }
+
+  .menu-link:hover,
+  .menu-link:focus-visible {
+    color: var(--signal);
+  }
+
+  .menu-num {
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    color: var(--steel);
+  }
+
+  .menu-meta {
+    margin-top: 3rem;
+    color: var(--steel-dim);
+    letter-spacing: 0.12em;
+  }
+
+  @media (max-width: 960px) {
+    .links,
+    .nav-cta {
+      display: none;
+    }
+
+    .menu-btn {
+      display: inline-flex;
+    }
+
+    .nav-in {
+      height: 64px;
+    }
+
+    .brand-sub {
+      display: none;
+    }
+  }
+</style>

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://hridoysamadder01-coder.github.io/Avator-Ai-technologies/sitemap-index.xml
