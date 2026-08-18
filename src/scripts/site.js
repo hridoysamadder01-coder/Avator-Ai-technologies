@@ -16,6 +16,10 @@ const menu = document.querySelector('[data-menu]');
 if (menuBtn && menu) {
   const setOpen = (open) => {
     menuBtn.setAttribute('aria-expanded', String(open));
+    // keep keyboard/AT focus inside the open menu
+    document.querySelectorAll('main, footer').forEach((el) => {
+      el.inert = open;
+    });
     if (open) {
       menu.hidden = false;
       requestAnimationFrame(() => menu.classList.add('open'));

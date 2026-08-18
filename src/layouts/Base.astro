@@ -11,12 +11,15 @@ interface Props {
   description?: string;
   /** Path for canonical URL, e.g. "/technology/" */
   path?: string;
+  /** Exclude from search indexing (error pages) */
+  noindex?: boolean;
 }
 
 const {
   title,
   description = SITE.description,
   path = '/',
+  noindex = false,
 } = Astro.props;
 
 const pageTitle = title ? `${title} — ${SITE.name}` : `${SITE.name} — ${SITE.tagline}`;
@@ -41,7 +44,7 @@ const orgSchema = JSON.stringify({
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonical} />
+    {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
     <link rel="icon" type="image/svg+xml" href={href('/favicon.svg')} />
     <link rel="sitemap" href={href('/sitemap-index.xml')} />
     <meta name="generator" content={Astro.generator} />

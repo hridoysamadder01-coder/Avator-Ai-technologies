@@ -201,6 +201,10 @@ const isActive = (path: string) => current.startsWith(href(path).replace(/\/$/, 
   }
 
   /* full-screen menu */
+  .menu[hidden] {
+    display: none !important;
+  }
+
   .menu {
     position: fixed;
     inset: 0;

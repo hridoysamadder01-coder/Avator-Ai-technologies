@@ -15,10 +15,10 @@
   class="field-toggle mono"
   data-field-toggle
   aria-pressed="true"
-  title="Pause background motion"
+  aria-label="Background motion"
 >
   <span class="ft-dot" aria-hidden="true"></span>
-  <span data-field-label>Field · live</span>
+  <span data-field-label aria-hidden="true">Field · live</span>
 </button>
 
 <style>
@@ -258,7 +258,6 @@
       toggle.addEventListener('click', () => {
         userPaused = !userPaused;
         toggle.setAttribute('aria-pressed', String(!userPaused));
-        toggle.title = userPaused ? 'Resume background motion' : 'Pause background motion';
         if (toggleLabel) toggleLabel.textContent = userPaused ? 'Field · paused' : 'Field · live';
         if (userPaused) {
           stop();

@@ -24,7 +24,7 @@ const statusLabel: Record<string, string> = {
     <div class="hero-in shell">
       <p class="mono hero-eyebrow rv">Independent AI technology company</p>
       <h1 class="hero-id">
-        <span class="hero-word kin">AVATOR</span>
+        <span class="hero-word kin">AVATOR</span>{' '}
         <span class="hero-tail mono">AI&nbsp;Technologies</span>
       </h1>
       <p class="hero-statement statement kin">
@@ -210,7 +210,7 @@ const statusLabel: Record<string, string> = {
           <span class="mono">avator·platform — interface preview</span>
           <span class="console-lights" aria-hidden="true"><i></i><i></i><i></i></span>
         </figcaption>
-        <pre class="console-body" aria-hidden="true"><code>$ curl https://api.avator.example/v1/language/extract \
+        <pre class="console-body" aria-hidden="true" tabindex="-1"><code>$ curl https://api.avator.example/v1/language/extract \
     -H "Authorization: Bearer avt_&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;" \
     -d &#123; "document": "invoice_0042.pdf",
         "schema":   "line_items"        &#125;
@@ -384,7 +384,7 @@ const statusLabel: Record<string, string> = {
     position: absolute;
     bottom: 1.4rem;
     z-index: 3;
-    color: var(--steel-dim);
+    color: var(--steel);
     letter-spacing: 0.18em;
   }
 
@@ -577,7 +577,7 @@ const statusLabel: Record<string, string> = {
   }
 
   .work-disc {
-    color: var(--steel-dim);
+    color: var(--steel);
     letter-spacing: 0.16em;
     margin-top: auto;
   }
@@ -639,7 +639,7 @@ const statusLabel: Record<string, string> = {
     color: var(--bone-1);
   }
 
-  .c-dim { color: var(--steel-dim); }
+  .c-dim { color: var(--steel); }
   .c-ok { color: var(--signal); }
   .c-sig { color: var(--bone-0); }
 
