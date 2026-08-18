@@ -8,8 +8,9 @@ const { eyebrow, title, lede } = Astro.props;
 ---
 
 <header class="page-intro dots-bg">
+  <div class="glow intro-glow" aria-hidden="true"></div>
   <div class="shell">
-    <p class="mono intro-eyebrow rv">{eyebrow}</p>
+    <p class="mono intro-eyebrow rv" data-scramble>{eyebrow}</p>
     <h1 class="intro-title kin">{title}</h1>
     {lede && <p class="lede rv" style="--rv-d: 0.25s">{lede}</p>}
   </div>
@@ -17,9 +18,22 @@ const { eyebrow, title, lede } = Astro.props;
 
 <style>
   .page-intro {
+    position: relative;
+    overflow: clip;
     padding-block: clamp(9rem, 20vh, 13rem) clamp(3rem, 7vh, 5rem);
     border-bottom: 1px solid var(--line);
     background-attachment: local;
+  }
+
+  .intro-glow {
+    left: -8%;
+    top: -20%;
+    width: min(55vw, 760px);
+    aspect-ratio: 1.4;
+  }
+
+  .page-intro .shell {
+    position: relative;
   }
 
   .intro-eyebrow {

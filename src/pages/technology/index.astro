@@ -32,7 +32,7 @@ const statusLabel = TECH_STATUS_LABEL;
               <span class="mono steel">{t.data.designation}</span>
               <span class="chip" data-state={t.data.status}>{statusLabel[t.data.status]}</span>
             </div>
-            <h2 class="h2">{t.data.title}</h2>
+            <h2 class="h2" transition:name={`tech-${t.id}`}>{t.data.title}</h2>
             <p class="dim tech-sum">{t.data.summary}</p>
             <ul class="cap-list" aria-label={`${t.data.title} capabilities`}>
               {t.data.capabilities.map((c) => (

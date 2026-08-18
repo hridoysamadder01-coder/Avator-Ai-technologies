@@ -1,9 +1,11 @@
 ---
 import { NAV, SITE, href } from '../lib/site';
+import pkg from '../../package.json';
 const year = new Date().getFullYear();
+const version = pkg.version;
 ---
 
-<footer class="footer">
+<footer class="footer" transition:name="site-footer" transition:animate="none">
   <div class="shell">
     <div class="foot-cta rv">
       <p class="mono steel">Next step</p>
@@ -53,6 +55,10 @@ const year = new Date().getFullYear();
 
   <div class="shell foot-base">
     <p class="mono">© {year} {SITE.name}</p>
+    <p class="mono steel foot-sys">
+      <span aria-hidden="true">SYS·V{version}</span>
+      <span class="foot-clock">UTC <span data-utc>--:--:--</span></span>
+    </p>
     <p class="mono steel">Independent AI technology company</p>
   </div>
 </footer>
@@ -125,6 +131,11 @@ const year = new Date().getFullYear();
     -webkit-text-stroke: 1px rgba(236, 233, 224, 0.1);
     user-select: none;
     transform: translateY(0.1em);
+    transition: color 0.6s var(--ease-out);
+  }
+
+  .foot-mark:hover {
+    color: rgba(236, 233, 224, 0.05);
   }
 
   .foot-base {
@@ -139,6 +150,12 @@ const year = new Date().getFullYear();
   .foot-base .mono {
     color: var(--steel);
     letter-spacing: 0.14em;
+  }
+
+  .foot-sys {
+    display: inline-flex;
+    gap: 1.6rem;
+    font-variant-numeric: tabular-nums;
   }
 
   @media (max-width: 720px) {

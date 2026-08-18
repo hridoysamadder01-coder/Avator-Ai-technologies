@@ -34,7 +34,7 @@ const next = all[(idx + 1) % all.length];
           <span aria-hidden="true"> / </span>
           <span class="sig">{entry.data.designation}</span>
         </p>
-        <h1 class="t-title kin">{entry.data.title}</h1>
+        <h1 class="t-title kin" transition:name={`tech-${entry.id}`}>{entry.data.title}</h1>
         <div class="t-meta rv" style="--rv-d: 0.2s">
           <span class="chip" data-state={entry.data.status}>{statusLabel[entry.data.status]}</span>
           <span class="mono steel">{entry.data.designation}</span>
