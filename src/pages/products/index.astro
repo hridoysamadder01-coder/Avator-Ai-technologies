@@ -38,7 +38,7 @@ const statusLabel = PRODUCT_STATUS_LABEL;
                     {statusLabel[p.data.status]}
                   </span>
                 </div>
-                <h3 class="h3">{p.data.name}</h3>
+                <h3 class="h3" transition:name={`prod-${p.id}`}>{p.data.name}</h3>
                 <p class="dim">{p.data.tagline}</p>
               </a>
             ))}
@@ -166,7 +166,9 @@ const statusLabel = PRODUCT_STATUS_LABEL;
     padding: 1.8rem 1.6rem;
     display: grid;
     gap: 1.1rem;
-    box-shadow: inset 0 1px rgba(255, 255, 255, 0.04);
+    box-shadow:
+      inset 0 0.5px rgba(255, 255, 255, 0.18),
+      0 0 0 0.5px rgba(0, 0, 0, 0.8);
   }
 
   .pipe-row {

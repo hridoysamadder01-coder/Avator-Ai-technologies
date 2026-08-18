@@ -28,7 +28,7 @@ const next = all[(idx + 1) % all.length];
           <span aria-hidden="true"> / </span>
           <span class="sig">{entry.data.designation}</span>
         </p>
-        <h1 class="w-title kin">{entry.data.title}</h1>
+        <h1 class="w-title kin" transition:name={`work-${entry.id}`}>{entry.data.title}</h1>
         <div class="w-meta rv" style="--rv-d: 0.2s">
           <span class="chip" data-state={statusKey(entry.data.status)}>{entry.data.status}</span>
           <span class="mono steel">{entry.data.discipline}</span>

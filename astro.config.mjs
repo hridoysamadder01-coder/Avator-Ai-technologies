@@ -9,6 +9,10 @@ export default defineConfig({
   base: '/Avator-Ai-technologies',
   trailingSlash: 'always',
   output: 'static',
+  prefetch: {
+    prefetchAll: true,
+    defaultStrategy: 'hover',
+  },
   integrations: [sitemap()],
   build: {
     inlineStylesheets: 'auto',

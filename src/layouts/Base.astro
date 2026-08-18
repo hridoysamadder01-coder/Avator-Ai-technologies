@@ -2,6 +2,7 @@
 import '@fontsource-variable/archivo/wdth.css';
 import '@fontsource/fragment-mono';
 import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 import { SITE, href } from '../lib/site';
@@ -41,11 +42,13 @@ const orgSchema = JSON.stringify({
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
     {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
     <link rel="icon" type="image/svg+xml" href={href('/favicon.svg')} />
+    <link rel="apple-touch-icon" href={href('/apple-touch-icon.png')} />
+    <link rel="manifest" href={href('/manifest.webmanifest')} />
     <link rel="sitemap" href={href('/sitemap-index.xml')} />
     <meta name="generator" content={Astro.generator} />
     <meta name="theme-color" content="#08090b" />
@@ -65,11 +68,25 @@ const orgSchema = JSON.stringify({
 
     <script is:inline>document.documentElement.classList.add('js');</script>
     <script is:inline type="application/ld+json" set:html={orgSchema} />
+    <ClientRouter fallback="swap" />
   </head>
   <body>
+    <div class="scroll-progress" aria-hidden="true"></div>
     <a class="skip-link" href="#main">Skip to content</a>
     <Nav />
-    <main id="main">
+    <main
+      id="main"
+      transition:animate={{
+        forwards: {
+          old: { name: 'avtFadeOut', duration: '0.18s', easing: 'cubic-bezier(0.76, 0, 0.24, 1)', fillMode: 'both' },
+          new: { name: 'avtLiftIn', duration: '0.35s', easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fillMode: 'both' },
+        },
+        backwards: {
+          old: { name: 'avtFadeOut', duration: '0.18s', easing: 'cubic-bezier(0.76, 0, 0.24, 1)', fillMode: 'both' },
+          new: { name: 'avtLiftIn', duration: '0.35s', easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fillMode: 'both' },
+        },
+      }}
+    >
       <slot />
     </main>
     <Footer />

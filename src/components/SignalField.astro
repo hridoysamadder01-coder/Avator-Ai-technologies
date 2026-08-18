@@ -2,11 +2,11 @@
 /**
  * The AVATOR signal field — an interactive lattice of oriented marks that
  * align toward a point of attention (the cursor, or an autonomous attractor),
- * crossed by periodic signal wavefronts.
+ * crossed by periodic signal wavefronts. Clicks emit their own wavefront.
  *
  * Engineering: canvas 2D, DPR capped at 2, delta-time driven (rate-independent),
  * paused when offscreen or tab-hidden, one static frame under reduced motion,
- * and a visible pause control (WCAG 2.2.2).
+ * a visible pause control (WCAG 2.2.2), and ClientRouter-lifecycle aware.
  */
 ---
 
@@ -70,15 +70,23 @@
 </style>
 
 <script>
-  const canvasEl = document.querySelector('[data-signal-field]') as HTMLCanvasElement | null;
-  const toggle = document.querySelector('[data-field-toggle]') as HTMLButtonElement | null;
-  const toggleLabel = document.querySelector('[data-field-label]');
+  const motionMq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let cleanup: (() => void) | null = null;
 
-  if (canvasEl) {
+  function initField() {
+    cleanup?.();
+    cleanup = null;
+
+    const canvasEl = document.querySelector('[data-signal-field]') as HTMLCanvasElement | null;
+    if (!canvasEl) return;
     const canvas = canvasEl;
+    const toggle = document.querySelector('[data-field-toggle]') as HTMLButtonElement | null;
+    const toggleLabel = document.querySelector('[data-field-label]');
+
     const ctx = canvas.getContext('2d', { alpha: true })!;
-    const motionMq = window.matchMedia('(prefers-reduced-motion: reduce)');
     const finePointer = window.matchMedia('(pointer: fine)').matches;
+    const ac = new AbortController();
+    const { signal } = ac;
 
     const SPACING = 34;
     const DASH = 10;
@@ -89,14 +97,18 @@
 
     const attractor = { x: 0, y: 0, tx: 0, ty: 0 };
     const pointer = { x: 0, y: 0, active: false };
-    let waves: { x: number; y: number; r: number }[] = [];
+    let waves: { x: number; y: number; r: number; hot?: boolean }[] = [];
     let waveClock = 0;
     let raf = 0;
     let running = false;
     let userPaused = false;
     let onScreen = true;
-    let t = 0; // simulation clock, seconds
+    let t = 0;
     let last = 0;
+
+    /* hero content parallax — consumed inside the same rAF loop */
+    const parallaxEl = document.querySelector('[data-hero-parallax]') as HTMLElement | null;
+    const par = { x: 0, y: 0 };
 
     function build() {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -128,7 +140,6 @@
       attractor.y = attractor.ty = h * 0.38;
     }
 
-    // exponential smoothing that is stable across frame rates
     const ease = (k: number, dt: number) => 1 - Math.pow(1 - k, dt * 60);
 
     function frame(now: number) {
@@ -152,8 +163,18 @@
         waveClock = 0;
         waves.push({ x: attractor.x, y: attractor.y, r: 0 });
       }
-      waves.forEach((wv) => (wv.r += 190 * dt));
+      waves.forEach((wv) => (wv.r += (wv.hot ? 260 : 190) * dt));
       waves = waves.filter((wv) => wv.r < Math.max(w, h) * 1.2);
+
+      /* parallax drift toward pointer, gently */
+      if (parallaxEl && finePointer) {
+        const txp = pointer.active ? (pointer.x / w - 0.5) * -10 : 0;
+        const typ = pointer.active ? (pointer.y / h - 0.5) * -7 : 0;
+        const kp = ease(0.06, dt);
+        par.x += (txp - par.x) * kp;
+        par.y += (typ - par.y) * kp;
+        parallaxEl.style.transform = `translate3d(${par.x.toFixed(2)}px, ${par.y.toFixed(2)}px, 0)`;
+      }
 
       draw(dt);
       raf = requestAnimationFrame(frame);
@@ -180,7 +201,7 @@
         let waveBoost = 0;
         for (const wv of waves) {
           const wd = Math.abs(Math.hypot(n.x - wv.x, n.y - wv.y) - wv.r);
-          if (wd < 46) waveBoost = Math.max(waveBoost, (1 - wd / 46) * 0.55);
+          if (wd < 46) waveBoost = Math.max(waveBoost, (1 - wd / 46) * (wv.hot ? 0.75 : 0.55));
         }
         alpha += waveBoost;
 
@@ -242,7 +263,7 @@
     if (motionMq.matches) drawStatic();
     else start();
 
-    motionMq.addEventListener('change', () => {
+    const onMotionChange = () => {
       if (motionMq.matches) {
         stop();
         drawStatic();
@@ -251,37 +272,61 @@
         if (toggle) toggle.hidden = false;
         sync();
       }
-    });
+    };
+    motionMq.addEventListener('change', onMotionChange, { signal });
 
     if (toggle) {
       if (motionMq.matches) toggle.hidden = true;
-      toggle.addEventListener('click', () => {
-        userPaused = !userPaused;
-        toggle.setAttribute('aria-pressed', String(!userPaused));
-        if (toggleLabel) toggleLabel.textContent = userPaused ? 'Field · paused' : 'Field · live';
-        if (userPaused) {
-          stop();
-          drawStatic();
-        } else {
-          sync();
-        }
-      });
+      toggle.addEventListener(
+        'click',
+        () => {
+          userPaused = !userPaused;
+          toggle.setAttribute('aria-pressed', String(!userPaused));
+          if (toggleLabel) toggleLabel.textContent = userPaused ? 'Field · paused' : 'Field · live';
+          if (userPaused) {
+            stop();
+            drawStatic();
+          } else {
+            sync();
+          }
+        },
+        { signal },
+      );
     }
 
+    const host = (canvas.closest('[data-hero]') || canvas.parentElement!) as HTMLElement;
     if (finePointer) {
-      const host = canvas.closest('[data-hero]') || canvas.parentElement!;
-      host.addEventListener('pointermove', (e) => {
-        const rect = canvas.getBoundingClientRect();
-        pointer.x = (e as PointerEvent).clientX - rect.left;
-        pointer.y = (e as PointerEvent).clientY - rect.top;
-        pointer.active = true;
-      });
-      host.addEventListener('pointerleave', () => {
-        pointer.active = false;
-      });
+      host.addEventListener(
+        'pointermove',
+        (e) => {
+          const rect = canvas.getBoundingClientRect();
+          pointer.x = e.clientX - rect.left;
+          pointer.y = e.clientY - rect.top;
+          pointer.active = true;
+        },
+        { signal },
+      );
+      host.addEventListener(
+        'pointerleave',
+        () => {
+          pointer.active = false;
+        },
+        { signal },
+      );
     }
 
-    document.addEventListener('visibilitychange', sync);
+    /* a press anywhere on the hero emits a wavefront from that point */
+    host.addEventListener(
+      'pointerdown',
+      (e) => {
+        if (motionMq.matches || userPaused) return;
+        const rect = canvas.getBoundingClientRect();
+        waves.push({ x: e.clientX - rect.left, y: e.clientY - rect.top, r: 0, hot: true });
+      },
+      { signal },
+    );
+
+    document.addEventListener('visibilitychange', sync, { signal });
 
     const vis = new IntersectionObserver(
       ([entry]) => {
@@ -293,12 +338,34 @@
     vis.observe(canvas);
 
     let resizeTimer = 0;
-    window.addEventListener('resize', () => {
+    let lastW = window.innerWidth;
+    const coarse = window.matchMedia('(pointer: coarse)').matches;
+    window.addEventListener(
+      'resize',
+      () => {
+        // mobile URL-bar collapse fires height-only resizes — ignore those
+        if (coarse && Math.abs(window.innerWidth - lastW) < 2) return;
+        lastW = window.innerWidth;
+        clearTimeout(resizeTimer);
+        resizeTimer = window.setTimeout(() => {
+          build();
+          if (!running) drawStatic();
+        }, 150);
+      },
+      { signal },
+    );
+
+    cleanup = () => {
+      stop();
+      vis.disconnect();
       clearTimeout(resizeTimer);
-      resizeTimer = window.setTimeout(() => {
-        build();
-        if (!running) drawStatic();
-      }, 150);
-    });
+      ac.abort();
+    };
   }
+
+  document.addEventListener('astro:page-load', initField);
+  document.addEventListener('astro:before-swap', () => {
+    cleanup?.();
+    cleanup = null;
+  });
 </script>

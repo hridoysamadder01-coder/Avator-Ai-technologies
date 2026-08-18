@@ -24,7 +24,7 @@ const work = (await getCollection('work')).sort((a, b) => a.data.order - b.data.
         <a class="work-row rv" style={`--rv-d: ${Math.min(i * 0.06, 0.3)}s`} href={href(`/work/${wk.id}/`)}>
           <span class="mono steel wr-code">{wk.data.designation}</span>
           <div class="wr-main">
-            <h2 class="h2">{wk.data.title}</h2>
+            <h2 class="h2" transition:name={`work-${wk.id}`}>{wk.data.title}</h2>
             <p class="dim wr-sum">{wk.data.summary}</p>
           </div>
           <div class="wr-side">

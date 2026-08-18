@@ -26,7 +26,7 @@ const statusLabel = PRODUCT_STATUS_LABEL;
           <span aria-hidden="true"> / </span>
           <span class="sig">{entry.data.designation}</span>
         </p>
-        <h1 class="p-title kin">{entry.data.name}</h1>
+        <h1 class="p-title kin" transition:name={`prod-${entry.id}`}>{entry.data.name}</h1>
         <p class="lede rv" style="--rv-d: 0.2s">{entry.data.tagline}</p>
         <div class="p-meta rv" style="--rv-d: 0.3s">
           <span class="chip" data-state={entry.data.status}>{statusLabel[entry.data.status]}</span>
