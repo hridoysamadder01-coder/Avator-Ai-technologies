@@ -1,0 +1,224 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import PageIntro from '../../components/PageIntro.astro';
+import { SITE, href } from '../../lib/site';
+
+const products = (await getCollection('products')).sort((a, b) => a.data.order - b.data.order);
+
+const statusLabel: Record<string, string> = {
+  'in-development': 'In development',
+  'private-preview': 'Private preview',
+  available: 'Available',
+};
+---
+
+<Base
+  title="Products"
+  description="Commercial software from AVATOR AI TECHNOLOGIES — subscriptions, API access and enterprise licensing, all under one roof. First product line in private development."
+  path="/products/"
+>
+  <PageIntro
+    eyebrow="Products — commercial systems"
+    title="Announced when they exist. Not before."
+    lede="Everything commercial at AVATOR ships under the company's name and meets the company's engineering bar. This page is the honest state of the product line."
+  />
+
+  {
+    products.length > 0 && (
+      <section class="section" aria-labelledby="live-products">
+        <div class="shell">
+          <div class="sect-head">
+            <span class="idx">01</span>
+            <h2 class="lbl" id="live-products">Product line</h2>
+            <span class="rule rule-draw" />
+          </div>
+          <div class="prod-grid">
+            {products.map((p) => (
+              <a class="prod-cell rv" href={href(`/products/${p.id}/`)}>
+                <div class="prod-top">
+                  <span class="mono steel">{p.data.designation}</span>
+                  <span class="chip" data-state={p.data.status}>
+                    {statusLabel[p.data.status]}
+                  </span>
+                </div>
+                <h3 class="h3">{p.data.name}</h3>
+                <p class="dim">{p.data.tagline}</p>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <section class="section" aria-labelledby="pipeline">
+    <div class="shell">
+      <div class="sect-head">
+        <span class="idx">{products.length > 0 ? '02' : '01'}</span>
+        <h2 class="lbl" id="pipeline">Pipeline</h2>
+        <span class="rule rule-draw"></span>
+      </div>
+      <div class="pipe-split">
+        <div>
+          <p class="h2 kin">The first product line is in private development.</p>
+          <p class="body-copy rv">
+            We don't publish names, screenshots or launch dates for software
+            that isn't finished. What we can say: the line is built on the
+            capability areas documented under <a class="inline-link" href={href('/technology/')}>Technology</a>,
+            it will ship as subscription software with API access behind it,
+            and it will be announced here first.
+          </p>
+          <div class="hero-cta rv" style="--rv-d: 0.1s">
+            <a
+              class="btn"
+              href={`mailto:${SITE.contactEmail}?subject=Product%20announcements%20—%20AVATOR`}
+            >
+              Be notified at release <span class="tick" aria-hidden="true">→</span>
+            </a>
+          </div>
+        </div>
+        <div class="pipe-log rv" style="--rv-d: 0.15s" aria-label="Product pipeline status">
+          <p class="mono pipe-row"><span class="steel">STAGE·01</span> Capability engineering <span class="sig">— complete for line one</span></p>
+          <p class="mono pipe-row"><span class="steel">STAGE·02</span> Product build <span class="sig">— in progress</span></p>
+          <p class="mono pipe-row"><span class="steel">STAGE·03</span> Private testing <span class="dimtxt">— ahead</span></p>
+          <p class="mono pipe-row"><span class="steel">STAGE·04</span> Public release <span class="dimtxt">— announced here</span></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="model">
+    <div class="shell">
+      <div class="sect-head">
+        <span class="idx">{products.length > 0 ? '03' : '02'}</span>
+        <h2 class="lbl" id="model">How AVATOR sells</h2>
+        <span class="rule rule-draw"></span>
+      </div>
+      <div class="model-grid">
+        <div class="model-cell rv">
+          <span class="mono sig">CLASS·A</span>
+          <h3 class="h3">Software subscriptions</h3>
+          <p class="dim">
+            Complete products on monthly or yearly plans, with free trials
+            where they make sense. Individual and team tiers, priced openly.
+          </p>
+        </div>
+        <div class="model-cell rv" style="--rv-d: 0.08s">
+          <span class="mono sig">CLASS·B</span>
+          <h3 class="h3">API access</h3>
+          <p class="dim">
+            The capabilities inside our products, exposed as documented APIs
+            with usage-based plans — credits, rate limits and clear metering.
+          </p>
+        </div>
+        <div class="model-cell rv" style="--rv-d: 0.16s">
+          <span class="mono sig">CLASS·C</span>
+          <h3 class="h3">Enterprise licensing</h3>
+          <p class="dim">
+            Private deployments, custom integrations and negotiated agreements
+            for organizations with their own constraints. <a class="inline-link" href={href('/enterprise/')}>Enterprise&nbsp;→</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .prod-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+
+  .prod-cell {
+    background: var(--ink-0);
+    padding: 2rem;
+    display: grid;
+    gap: 0.9rem;
+    transition: background-color var(--sp-ui) var(--ease-out);
+  }
+
+  .prod-cell:hover {
+    background: var(--ink-1);
+  }
+
+  .prod-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .pipe-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: clamp(2.5rem, 6vw, 6rem);
+    align-items: center;
+  }
+
+  .pipe-split .body-copy {
+    margin-top: 1.4rem;
+  }
+
+  .pipe-log {
+    border: 1px solid var(--line-strong);
+    background: var(--ink-1);
+    padding: 1.8rem 1.6rem;
+    display: grid;
+    gap: 1.1rem;
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.04);
+  }
+
+  .pipe-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    letter-spacing: 0.1em;
+    font-size: 0.72rem;
+  }
+
+  .dimtxt {
+    color: var(--steel-dim);
+  }
+
+  .inline-link {
+    color: var(--bone-0);
+    border-bottom: 1px solid var(--line-strong);
+    transition: color var(--sp-ui), border-color var(--sp-ui);
+  }
+
+  .inline-link:hover {
+    color: var(--signal);
+    border-color: var(--signal);
+  }
+
+  .model-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1.5rem, 3vw, 3rem);
+  }
+
+  .model-cell {
+    border-top: 1px solid var(--line-strong);
+    padding-top: 1.4rem;
+    display: grid;
+    gap: 0.9rem;
+    align-content: start;
+  }
+
+  .model-cell .dim {
+    font-size: 0.95rem;
+  }
+
+  @media (max-width: 900px) {
+    .pipe-split,
+    .model-grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 2rem;
+    }
+  }
+</style>

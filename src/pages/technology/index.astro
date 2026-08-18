@@ -1,0 +1,140 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import PageIntro from '../../components/PageIntro.astro';
+import { href } from '../../lib/site';
+
+const technologies = (await getCollection('technologies')).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+
+const statusLabel: Record<string, string> = {
+  active: 'Active',
+  development: 'In development',
+  research: 'Research',
+};
+---
+
+<Base
+  title="Technology"
+  description="The technological territory of AVATOR AI TECHNOLOGIES: language systems, autonomous agents, applied platforms, interface engineering, data and signal systems, and research."
+  path="/technology/"
+>
+  <PageIntro
+    eyebrow="Technology — capability areas"
+    title="Six disciplines. One engineering standard."
+    lede="Every AVATOR product is built from the same technological base. This is the map of it — what each area does, what state it is in, and where it is going."
+  />
+
+  <div class="shell">
+    <ol class="tech-list">
+      {technologies.map((t, i) => (
+        <li class="tech-block rv" style={`--rv-d: ${Math.min(i * 0.05, 0.3)}s`}>
+          <a class="tech-link" href={href(`/technology/${t.id}/`)}>
+            <div class="tech-meta">
+              <span class="mono sig">{String(i + 1).padStart(2, '0')}</span>
+              <span class="mono steel">{t.data.designation}</span>
+              <span class="chip" data-state={t.data.status}>{statusLabel[t.data.status]}</span>
+            </div>
+            <h2 class="h2">{t.data.title}</h2>
+            <p class="dim tech-sum">{t.data.summary}</p>
+            <ul class="cap-list" aria-label={`${t.data.title} capabilities`}>
+              {t.data.capabilities.map((c) => (
+                <li class="mono">{c}</li>
+              ))}
+            </ul>
+            <span class="text-link tech-more">Read more <span aria-hidden="true">→</span></span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </div>
+</Base>
+
+<style>
+  .tech-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .tech-block {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .tech-link {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    grid-template-areas: 'meta meta' 'title caps' 'sum caps' 'more caps';
+    column-gap: clamp(2rem, 5vw, 5rem);
+    padding-block: clamp(2.5rem, 6vh, 4rem);
+    transition: background-color var(--sp-ui) var(--ease-out);
+  }
+
+  .tech-link:hover {
+    background: var(--ink-1);
+  }
+
+  .tech-meta {
+    grid-area: meta;
+    display: flex;
+    align-items: center;
+    gap: 1.4rem;
+    margin-bottom: 1.4rem;
+  }
+
+  .tech-meta .steel {
+    letter-spacing: 0.18em;
+  }
+
+  .tech-link h2 {
+    grid-area: title;
+  }
+
+  .tech-sum {
+    grid-area: sum;
+    margin-top: 1rem;
+    max-width: 36em;
+  }
+
+  .cap-list {
+    grid-area: caps;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-left: 1px solid var(--line);
+    padding-left: 1.6rem;
+    display: grid;
+    gap: 0.7rem;
+    align-content: start;
+  }
+
+  .cap-list li {
+    color: var(--steel);
+    letter-spacing: 0.08em;
+    font-size: 0.72rem;
+    text-transform: none;
+  }
+
+  .cap-list li::before {
+    content: '— ';
+    color: var(--signal);
+  }
+
+  .tech-more {
+    grid-area: more;
+    margin-top: 1.8rem;
+    justify-self: start;
+  }
+
+  @media (max-width: 860px) {
+    .tech-link {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: 'meta' 'title' 'sum' 'caps' 'more';
+    }
+
+    .cap-list {
+      margin-top: 1.4rem;
+    }
+  }
+</style>

@@ -1,0 +1,217 @@
+---
+import Base from '../layouts/Base.astro';
+import PageIntro from '../components/PageIntro.astro';
+import { SITE, href } from '../lib/site';
+---
+
+<Base
+  title="Enterprise"
+  description="Enterprise engagement with AVATOR AI TECHNOLOGIES — private deployments, custom systems, security review and direct engineering access under custom agreements."
+  path="/enterprise/"
+>
+  <PageIntro
+    eyebrow="Enterprise — direct engagement"
+    title="You talk to the engineers. From the first meeting."
+    lede="AVATOR is small enough that nothing is lost between sales and delivery, and serious enough that your constraints are engineering inputs, not objections."
+  />
+
+  <section class="section" aria-labelledby="e1">
+    <div class="shell">
+      <div class="sect-head">
+        <span class="idx">01</span>
+        <h2 class="lbl" id="e1">What we verify with you first</h2>
+        <span class="rule rule-draw"></span>
+      </div>
+      <p class="lede rv">
+        Large organizations verify before they trust. These conversations come
+        first in every AVATOR engagement — before scope, before price.
+      </p>
+      <div class="verify-grid">
+        <div class="verify-cell rv">
+          <span class="mono sig">V·01</span>
+          <h3 class="h3">Data boundaries</h3>
+          <p class="dim">
+            Where your data lives, what touches it, what never leaves your
+            environment — documented and agreed in writing.
+          </p>
+        </div>
+        <div class="verify-cell rv" style="--rv-d: 0.07s">
+          <span class="mono sig">V·02</span>
+          <h3 class="h3">Deployment model</h3>
+          <p class="dim">
+            Private and dedicated deployments where required. Shared
+            infrastructure only where you accept it.
+          </p>
+        </div>
+        <div class="verify-cell rv" style="--rv-d: 0.14s">
+          <span class="mono sig">V·03</span>
+          <h3 class="h3">Security review</h3>
+          <p class="dim">
+            Your security team gets real answers from the people who built the
+            system — architecture, access model, failure behavior.
+          </p>
+        </div>
+        <div class="verify-cell rv" style="--rv-d: 0.21s">
+          <span class="mono sig">V·04</span>
+          <h3 class="h3">Agreements</h3>
+          <p class="dim">
+            Custom licensing, support terms and procurement paperwork handled
+            directly — no reseller in the middle.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="e2">
+    <div class="shell eng-split">
+      <div>
+        <div class="sect-head">
+          <span class="idx">02</span>
+          <h2 class="lbl" id="e2">Engagement paths</h2>
+          <span class="rule rule-draw"></span>
+        </div>
+        <ol class="path-list">
+          <li class="rv">
+            <span class="mono steel">PATH·A</span>
+            <div>
+              <h3 class="h3">License what we build</h3>
+              <p class="dim">AVATOR products under enterprise terms — volume, private instances, custom SLAs.</p>
+            </div>
+          </li>
+          <li class="rv" style="--rv-d: 0.07s">
+            <span class="mono steel">PATH·B</span>
+            <div>
+              <h3 class="h3">Build with us</h3>
+              <p class="dim">Custom systems on the AVATOR technology base, engineered against your constraints.</p>
+            </div>
+          </li>
+          <li class="rv" style="--rv-d: 0.14s">
+            <span class="mono steel">PATH·C</span>
+            <div>
+              <h3 class="h3">API at volume</h3>
+              <p class="dim">Platform access with negotiated capacity, support and terms — when the platform opens.</p>
+            </div>
+          </li>
+        </ol>
+      </div>
+
+      <div class="ent-honest rv" style="--rv-d: 0.1s">
+        <p class="mono steel">A note on honesty</p>
+        <p class="honest-copy">
+          We are an early, independent company. We will not pretend to
+          certifications we don't hold or reference customers we don't have.
+          What we offer instead: direct access to the engineering, small-team
+          speed, and design-partner terms for organizations willing to build
+          early. Everything we claim, you can verify.
+        </p>
+        <div class="hero-cta">
+          <a
+            class="btn btn--solid"
+            href={`mailto:${SITE.contactEmail}?subject=Enterprise%20—%20AVATOR`}
+          >
+            Talk to AVATOR <span class="tick" aria-hidden="true">→</span>
+          </a>
+          <a class="text-link" href={href('/work/')}>
+            See the systems <span aria-hidden="true">→</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .verify-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    margin-top: 2.5rem;
+  }
+
+  .verify-cell {
+    background: var(--ink-0);
+    padding: clamp(1.5rem, 3vw, 2.4rem);
+    display: grid;
+    gap: 0.9rem;
+    align-content: start;
+  }
+
+  .verify-cell .mono {
+    letter-spacing: 0.18em;
+  }
+
+  .verify-cell .dim {
+    font-size: 0.95rem;
+    max-width: 30em;
+  }
+
+  .eng-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: clamp(2.5rem, 6vw, 6rem);
+    align-items: start;
+  }
+
+  .path-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .path-list li {
+    display: grid;
+    grid-template-columns: 6.5rem 1fr;
+    gap: 1.5rem;
+    padding-block: 1.6rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .path-list .mono {
+    letter-spacing: 0.18em;
+    padding-top: 0.35rem;
+  }
+
+  .path-list p {
+    margin-top: 0.4rem;
+    font-size: 0.95rem;
+  }
+
+  .ent-honest {
+    border: 1px solid var(--line-strong);
+    background: var(--ink-1);
+    padding: 2rem 1.8rem;
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.04);
+  }
+
+  .ent-honest > .mono {
+    letter-spacing: 0.22em;
+  }
+
+  .honest-copy {
+    margin-top: 1.2rem;
+    color: var(--bone-1);
+  }
+
+  .ent-honest .hero-cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.2rem;
+    align-items: center;
+    margin-top: 1.8rem;
+  }
+
+  @media (max-width: 900px) {
+    .verify-grid,
+    .eng-split {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .eng-split {
+      gap: 2rem;
+    }
+  }
+</style>

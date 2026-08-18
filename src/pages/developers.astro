@@ -1,0 +1,188 @@
+---
+import Base from '../layouts/Base.astro';
+import PageIntro from '../components/PageIntro.astro';
+import { SITE, href } from '../lib/site';
+---
+
+<Base
+  title="Developers"
+  description="The AVATOR platform for developers — documented APIs, usage-based plans and a reliability bar we hold ourselves to. Currently in design; early access by request."
+  path="/developers/"
+>
+  <PageIntro
+    eyebrow="Developers — the AVATOR platform"
+    title="The platform is the product, twice."
+    lede="Every capability we productize is also being engineered as a programmable surface. When the platform opens, this page becomes its front door — documentation, credentials, usage and plans."
+  />
+
+  <section class="section" aria-labelledby="d1">
+    <div class="shell dev-grid">
+      <div>
+        <div class="sect-head">
+          <span class="idx">01</span>
+          <h2 class="lbl" id="d1">What the platform will expose</h2>
+          <span class="rule rule-draw"></span>
+        </div>
+        <ul class="surface-list">
+          <li class="rv">
+            <span class="mono sig">API·LNG</span>
+            <div>
+              <h3 class="h3">Language interfaces</h3>
+              <p class="dim">Extraction, grounding and conversational endpoints over your own data.</p>
+            </div>
+          </li>
+          <li class="rv" style="--rv-d: 0.07s">
+            <span class="mono sig">API·AGT</span>
+            <div>
+              <h3 class="h3">Agent execution</h3>
+              <p class="dim">Bounded multi-step task execution with checkpoints and full audit logs.</p>
+            </div>
+          </li>
+          <li class="rv" style="--rv-d: 0.14s">
+            <span class="mono sig">API·SIG</span>
+            <div>
+              <h3 class="h3">Signal and data</h3>
+              <p class="dim">Structured pipelines and retrieval surfaces shaped for machine consumption.</p>
+            </div>
+          </li>
+        </ul>
+        <p class="mono steel surface-note rv">
+          Interface design — subject to change before public documentation.
+        </p>
+      </div>
+
+      <div class="dev-principles rv" style="--rv-d: 0.1s">
+        <p class="mono steel">Platform principles</p>
+        <ol class="prin-list">
+          <li><span class="mono sig">P·1</span> Documentation before marketing.</li>
+          <li><span class="mono sig">P·2</span> Usage you can meter, predict and cap.</li>
+          <li><span class="mono sig">P·3</span> What the API does is public. How it does it is ours.</li>
+          <li><span class="mono sig">P·4</span> Deprecations announced, never sprung.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="d2">
+    <div class="shell">
+      <div class="sect-head">
+        <span class="idx">02</span>
+        <h2 class="lbl" id="d2">Access</h2>
+        <span class="rule rule-draw"></span>
+      </div>
+      <div class="access-band">
+        <p class="h2 kin">Early access is a conversation, not a waitlist form.</p>
+        <div>
+          <p class="body-copy rv">
+            The platform is in design. If you want to build on AVATOR
+            capabilities — or you have a workload that should shape the API —
+            write to us. Early developers get direct engineering contact and a
+            voice in the interface.
+          </p>
+          <div class="hero-cta rv" style="--rv-d: 0.1s">
+            <a
+              class="btn btn--solid"
+              href={`mailto:${SITE.contactEmail}?subject=Developer%20access%20—%20AVATOR%20platform`}
+            >
+              Request developer access <span class="tick" aria-hidden="true">→</span>
+            </a>
+            <a class="text-link" href={href('/technology/')}>
+              The capability map <span aria-hidden="true">→</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .dev-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    gap: clamp(2.5rem, 6vw, 6rem);
+    align-items: start;
+  }
+
+  .surface-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .surface-list li {
+    display: grid;
+    grid-template-columns: 6.5rem 1fr;
+    gap: 1.5rem;
+    padding-block: 1.6rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .surface-list .mono {
+    letter-spacing: 0.18em;
+    padding-top: 0.35rem;
+  }
+
+  .surface-list p {
+    margin-top: 0.4rem;
+    font-size: 0.95rem;
+  }
+
+  .surface-note {
+    margin-top: 1.6rem;
+    letter-spacing: 0.14em;
+  }
+
+  .dev-principles {
+    border: 1px solid var(--line-strong);
+    background: var(--ink-1);
+    padding: 2rem 1.8rem;
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.04);
+  }
+
+  .dev-principles > .mono {
+    letter-spacing: 0.22em;
+  }
+
+  .prin-list {
+    list-style: none;
+    margin: 1.4rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 1.1rem;
+  }
+
+  .prin-list li {
+    display: flex;
+    gap: 1rem;
+    align-items: baseline;
+    color: var(--bone-1);
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 1.1rem;
+  }
+
+  .prin-list li:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .prin-list .mono {
+    letter-spacing: 0.14em;
+  }
+
+  .access-band {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: clamp(2.5rem, 6vw, 6rem);
+    align-items: start;
+  }
+
+  @media (max-width: 900px) {
+    .dev-grid,
+    .access-band {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 2rem;
+    }
+  }
+</style>

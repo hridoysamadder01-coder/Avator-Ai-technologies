@@ -1,0 +1,165 @@
+---
+import Base from '../layouts/Base.astro';
+import PageIntro from '../components/PageIntro.astro';
+import { SITE, href } from '../lib/site';
+
+const paths = [
+  {
+    code: 'CH·01',
+    title: 'General',
+    desc: 'Anything — a question, an idea, a hello.',
+    subject: 'Hello — AVATOR',
+  },
+  {
+    code: 'CH·02',
+    title: 'Enterprise',
+    desc: 'Private deployments, custom systems, agreements.',
+    subject: 'Enterprise — AVATOR',
+  },
+  {
+    code: 'CH·03',
+    title: 'Developers',
+    desc: 'Early platform access and API conversations.',
+    subject: 'Developer access — AVATOR platform',
+  },
+  {
+    code: 'CH·04',
+    title: 'Products',
+    desc: 'Release notifications and product questions.',
+    subject: 'Products — AVATOR',
+  },
+];
+---
+
+<Base
+  title="Contact"
+  description="Talk to AVATOR AI TECHNOLOGIES — enterprise, developer access, products or anything else. One inbox, read by the founder."
+  path="/contact/"
+>
+  <PageIntro
+    eyebrow="Contact — talk to AVATOR"
+    title="One inbox. No routing maze."
+    lede="Every message lands with the people who build. Choose a channel below, or just write."
+  />
+
+  <section class="section" aria-labelledby="ch">
+    <div class="shell">
+      <div class="sect-head">
+        <span class="idx">01</span>
+        <h2 class="lbl" id="ch">Channels</h2>
+        <span class="rule rule-draw"></span>
+      </div>
+      <ul class="chan-list">
+        {paths.map((p, i) => (
+          <li class="rv" style={`--rv-d: ${i * 0.06}s`}>
+            <a
+              class="chan-row"
+              href={`mailto:${SITE.contactEmail}?subject=${encodeURIComponent(p.subject)}`}
+            >
+              <span class="mono steel">{p.code}</span>
+              <span class="h3">{p.title}</span>
+              <span class="dim chan-desc">{p.desc}</span>
+              <span class="chan-arrow" aria-hidden="true">→</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+
+      <div class="direct rv" style="--rv-d: 0.2s">
+        <p class="mono steel">Direct</p>
+        <a class="direct-mail h2" href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>
+        <p class="mono steel direct-meta">{SITE.coordinates} — {SITE.origin} · replies in real time zones, not ticket queues</p>
+      </div>
+
+      <div class="hero-cta rv" style="--rv-d: 0.25s">
+        <a class="text-link" href={href('/company/')}>
+          About the company <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .chan-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .chan-row {
+    display: grid;
+    grid-template-columns: 6rem minmax(9rem, 0.6fr) 1.4fr 2rem;
+    gap: 1.5rem;
+    align-items: baseline;
+    padding-block: 1.5rem;
+    border-bottom: 1px solid var(--line);
+    padding-inline: 0.8rem;
+    margin-inline: -0.8rem;
+    transition: background-color var(--sp-ui) var(--ease-out);
+  }
+
+  .chan-row:hover {
+    background: var(--ink-1);
+  }
+
+  .chan-row .steel {
+    letter-spacing: 0.18em;
+  }
+
+  .chan-desc {
+    font-size: 0.95rem;
+  }
+
+  .chan-arrow {
+    color: var(--steel-dim);
+    justify-self: end;
+    transition: color var(--sp-ui), transform var(--sp-ui) var(--ease-out);
+  }
+
+  .chan-row:hover .chan-arrow {
+    color: var(--signal);
+    transform: translateX(4px);
+  }
+
+  .direct {
+    margin-top: 4rem;
+    display: grid;
+    gap: 1rem;
+  }
+
+  .direct > .mono {
+    letter-spacing: 0.22em;
+  }
+
+  .direct-mail {
+    word-break: break-all;
+    transition: color var(--sp-ui);
+  }
+
+  .direct-mail:hover {
+    color: var(--signal);
+  }
+
+  .direct-meta {
+    letter-spacing: 0.12em;
+  }
+
+  .direct + .hero-cta {
+    margin-top: 2.5rem;
+  }
+
+  @media (max-width: 780px) {
+    .chan-row {
+      grid-template-columns: 1fr auto;
+      grid-template-areas: 'code arrow' 'title title' 'desc desc';
+      row-gap: 0.5rem;
+    }
+
+    .chan-row .steel { grid-area: code; }
+    .chan-row .h3 { grid-area: title; }
+    .chan-desc { grid-area: desc; }
+    .chan-arrow { grid-area: arrow; }
+  }
+</style>
