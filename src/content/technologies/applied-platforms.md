@@ -1,7 +1,7 @@
 ---
 title: Applied Intelligence Platforms
 designation: AVT·APP
-summary: Complete vertical software where intelligence is load-bearing — operations, commerce, education and market tooling built end to end.
+summary: Complete vertical software where intelligence is load-bearing — operations, education and market tooling built end to end.
 status: active
 capabilities:
   - Full-stack operational platforms for specific industries
@@ -12,7 +12,7 @@ order: 3
 ---
 
 AVATOR builds whole platforms, not plugins. Our applied work spans operations
-software for physical businesses, education systems, and market-analysis
+software for physical businesses, education systems and market-analysis
 tooling — each one a complete product: interface, data layer, intelligence and
 deployment.
 

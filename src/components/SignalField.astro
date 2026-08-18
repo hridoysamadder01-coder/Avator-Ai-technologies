@@ -1,6 +1,6 @@
 ---
 /**
- * The AVATOR attention field — an interactive lattice of oriented marks that
+ * The AVATOR signal field — an interactive lattice of oriented marks that
  * align toward a point of attention (the cursor, or an autonomous attractor),
  * crossed by periodic signal wavefronts.
  *
@@ -80,7 +80,6 @@
     const motionMq = window.matchMedia('(prefers-reduced-motion: reduce)');
     const finePointer = window.matchMedia('(pointer: fine)').matches;
 
-    const DPR = Math.min(window.devicePixelRatio || 1, 2);
     const SPACING = 34;
     const DASH = 10;
 
@@ -100,12 +99,13 @@
     let last = 0;
 
     function build() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const rect = canvas.parentElement!.getBoundingClientRect();
       w = rect.width;
       h = rect.height;
-      canvas.width = Math.round(w * DPR);
-      canvas.height = Math.round(h * DPR);
-      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       nodes = [];
       const cols = Math.ceil(w / SPACING) + 1;

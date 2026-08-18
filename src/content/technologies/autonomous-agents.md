@@ -11,9 +11,8 @@ capabilities:
 order: 2
 ---
 
-The next layer of the ecosystem is agency: systems that don't just answer, but
-carry work forward — researching, operating software, moving processes from
-start to finish.
+The next layer of the ecosystem is agency: systems that carry work forward —
+researching, operating software, moving processes from start to finish.
 
 AVATOR's agent work is deliberately conservative where it should be. Autonomy is
 bounded, actions are logged, and the human override is a design requirement, not

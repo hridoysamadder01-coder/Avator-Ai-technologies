@@ -2,7 +2,7 @@
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import SignalField from '../components/SignalField.astro';
-import { SITE, href } from '../lib/site';
+import { SITE, TECH_STATUS_LABEL, href, statusKey } from '../lib/site';
 
 const technologies = (await getCollection('technologies')).sort(
   (a, b) => a.data.order - b.data.order,
@@ -10,11 +10,7 @@ const technologies = (await getCollection('technologies')).sort(
 const work = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
 const research = (await getCollection('research')).sort((a, b) => a.data.order - b.data.order);
 
-const statusLabel: Record<string, string> = {
-  active: 'Active',
-  development: 'In development',
-  research: 'Research',
-};
+const statusLabel = TECH_STATUS_LABEL;
 ---
 
 <Base>
@@ -25,7 +21,7 @@ const statusLabel: Record<string, string> = {
       <p class="mono hero-eyebrow rv">Independent AI technology company</p>
       <h1 class="hero-id">
         <span class="hero-word kin">AVATOR</span>{' '}
-        <span class="hero-tail mono">AI&nbsp;Technologies</span>
+        <span class="hero-tail mono">AI&nbsp;TECHNOLOGIES</span>
       </h1>
       <p class="hero-statement statement kin">
         Intelligence, engineered into systems that hold.
@@ -68,7 +64,7 @@ const statusLabel: Record<string, string> = {
         <p class="body-copy rv" style="--rv-d: 0.1s">
           We operate across the full stack — models applied to language and
           signal, agents that carry work forward, and the platforms, interfaces
-          and data systems around them. Built in Bangladesh. Built for anywhere.
+          and data systems around them. Engineered in Bangladesh. Built for the world.
         </p>
       </div>
     </div>
@@ -113,12 +109,12 @@ const statusLabel: Record<string, string> = {
             Everything commercial at AVATOR — software subscriptions, API
             access, enterprise licensing — belongs to the same ecosystem and
             meets the same engineering bar. The first product line is in
-            private development now; releases will be announced here, not
-            before they exist.
+            private development now; releases will be announced here — and
+            only once they exist.
           </p>
           <div class="prod-cta rv">
             <a class="text-link" href={href('/products/')}>
-              The product roadmap <span aria-hidden="true">→</span>
+              The product pipeline <span aria-hidden="true">→</span>
             </a>
           </div>
         </div>
@@ -167,10 +163,18 @@ const statusLabel: Record<string, string> = {
           >
             <div class="work-top">
               <span class="mono steel">{wk.data.designation}</span>
-              <span class="chip">{wk.data.status}</span>
+              <span class="chip" data-state={statusKey(wk.data.status)}>{wk.data.status}</span>
             </div>
             <h3 class={i === 0 ? 'h2' : 'h3'}>{wk.data.title}</h3>
             <p class="dim work-sum">{wk.data.summary}</p>
+            {i === 0 && (
+              <ul class="work-scope" aria-label="System scope">
+                <li class="mono">Stock</li>
+                <li class="mono">Sales</li>
+                <li class="mono">Records</li>
+                <li class="mono">Workflow</li>
+              </ul>
+            )}
             <span class="mono work-disc">{wk.data.discipline}</span>
           </a>
         ))}
@@ -190,7 +194,7 @@ const statusLabel: Record<string, string> = {
         <p class="h2 kin">Build on the AVATOR platform.</p>
         <p class="body-copy rv">
           The capabilities inside AVATOR products are being engineered as a
-          programmable platform: documented APIs, usage-based plans, and the
+          programmable platform: documented APIs, usage-based plans and the
           same reliability bar we hold ourselves to. The interface below is a
           design preview of that surface — public documentation arrives with
           the first release.
@@ -302,7 +306,7 @@ const statusLabel: Record<string, string> = {
             AVATOR AI TECHNOLOGIES was founded by {SITE.founder} as an
             independent company — no template, no borrowed playbook. Small,
             deliberate, and building an ecosystem meant to outlast every trend
-            cycle it was born into.
+            cycle.
           </p>
           <div class="hero-cta rv" style="--rv-d: 0.1s">
             <a class="text-link" href={href('/company/')}>
@@ -576,6 +580,22 @@ const statusLabel: Record<string, string> = {
     max-width: 34em;
   }
 
+  .work-scope {
+    list-style: none;
+    margin: 0.4rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .work-scope li {
+    border: 1px solid var(--line-strong);
+    color: var(--steel);
+    padding: 0.45em 0.9em;
+    letter-spacing: 0.16em;
+  }
+
   .work-disc {
     color: var(--steel);
     letter-spacing: 0.16em;
@@ -609,9 +629,16 @@ const statusLabel: Record<string, string> = {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 1rem;
     padding: 0.7rem 1.1rem;
     border-bottom: 1px solid var(--line);
     color: var(--steel);
+  }
+
+  .console-bar .mono {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .console-lights {
@@ -637,6 +664,18 @@ const statusLabel: Record<string, string> = {
     font-size: 0.78rem;
     line-height: 1.75;
     color: var(--bone-1);
+  }
+
+  /* keep right breathing room visible when the sample scrolls */
+  .console-body code {
+    display: inline-block;
+    padding-right: 1.1rem;
+  }
+
+  @media (max-width: 720px) {
+    .console-body {
+      font-size: 0.7rem;
+    }
   }
 
   .c-dim { color: var(--steel); }
@@ -766,6 +805,13 @@ const statusLabel: Record<string, string> = {
 
     .work-cell {
       min-height: 0;
+    }
+
+    /* stacked cells share one heading scale */
+    .work-cell--lead .h2 {
+      font-size: var(--t-h3);
+      line-height: 1.25;
+      font-stretch: 100%;
     }
   }
 </style>

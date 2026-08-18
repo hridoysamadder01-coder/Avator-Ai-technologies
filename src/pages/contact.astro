@@ -67,8 +67,10 @@ const paths = [
 
       <div class="direct rv" style="--rv-d: 0.2s">
         <p class="mono steel">Direct</p>
-        <a class="direct-mail h2" href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>
-        <p class="mono steel direct-meta">{SITE.coordinates} — {SITE.origin} · replies in real time zones, not ticket queues</p>
+        <a class="direct-mail h2" href={`mailto:${SITE.contactEmail}`}
+          >{SITE.contactEmail.split('@')[0]}<wbr />@{SITE.contactEmail.split('@')[1]}</a
+        >
+        <p class="mono steel direct-meta">{SITE.coordinates} — {SITE.origin} · replies from a person, not a ticket queue</p>
       </div>
 
       <div class="hero-cta rv" style="--rv-d: 0.25s">
@@ -134,8 +136,15 @@ const paths = [
   }
 
   .direct-mail {
-    word-break: break-all;
+    word-break: normal;
+    overflow-wrap: normal;
     transition: color var(--sp-ui);
+  }
+
+  @media (max-width: 720px) {
+    .direct-mail {
+      font-size: clamp(1.15rem, 6.2vw, 1.7rem);
+    }
   }
 
   .direct-mail:hover {

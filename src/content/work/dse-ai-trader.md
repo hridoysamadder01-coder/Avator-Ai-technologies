@@ -2,7 +2,7 @@
 title: DSE AI Trader
 designation: SYS·002
 discipline: Data & Signal Systems
-summary: Applied market-signal experiments for the Dhaka Stock Exchange — testing how far models can genuinely read a thin, volatile market.
+summary: Applied market-signal experiments for the Dhaka Stock Exchange — testing how well models can genuinely read a thin, volatile market.
 status: Experiment
 order: 2
 ---

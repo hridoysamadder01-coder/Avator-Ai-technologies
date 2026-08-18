@@ -41,7 +41,7 @@ const isActive = (path: string) => current.startsWith(href(path).replace(/\/$/, 
   </div>
 </header>
 
-<div class="menu" id="site-menu" data-menu hidden>
+<div class="menu" id="site-menu" data-menu role="dialog" aria-modal="true" aria-label="Site menu" hidden>
   <div class="menu-inner shell">
     <nav aria-label="Menu">
       <ul class="menu-list">

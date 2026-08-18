@@ -2,17 +2,13 @@
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import PageIntro from '../../components/PageIntro.astro';
-import { href } from '../../lib/site';
+import { TECH_STATUS_LABEL, href } from '../../lib/site';
 
 const technologies = (await getCollection('technologies')).sort(
   (a, b) => a.data.order - b.data.order,
 );
 
-const statusLabel: Record<string, string> = {
-  active: 'Active',
-  development: 'In development',
-  research: 'Research',
-};
+const statusLabel = TECH_STATUS_LABEL;
 ---
 
 <Base

@@ -1,7 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import { SITE, href } from '../../lib/site';
+import { PRODUCT_STATUS_LABEL, SITE, href } from '../../lib/site';
 
 export async function getStaticPaths() {
   const entries = await getCollection('products');
@@ -14,11 +14,7 @@ export async function getStaticPaths() {
 const { entry } = Astro.props;
 const { Content } = await render(entry);
 
-const statusLabel: Record<string, string> = {
-  'in-development': 'In development',
-  'private-preview': 'Private preview',
-  available: 'Available',
-};
+const statusLabel = PRODUCT_STATUS_LABEL;
 ---
 
 <Base title={entry.data.name} description={entry.data.summary} path={`/products/${entry.id}/`}>

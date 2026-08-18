@@ -2,7 +2,7 @@
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import PageIntro from '../../components/PageIntro.astro';
-import { href } from '../../lib/site';
+import { href, statusKey } from '../../lib/site';
 
 const work = (await getCollection('work')).sort((a, b) => a.data.order - b.data.order);
 ---
@@ -28,7 +28,7 @@ const work = (await getCollection('work')).sort((a, b) => a.data.order - b.data.
             <p class="dim wr-sum">{wk.data.summary}</p>
           </div>
           <div class="wr-side">
-            <span class="chip">{wk.data.status}</span>
+            <span class="chip" data-state={statusKey(wk.data.status)}>{wk.data.status}</span>
             <span class="mono steel wr-disc">{wk.data.discipline}</span>
           </div>
           <span class="wr-arrow" aria-hidden="true">→</span>

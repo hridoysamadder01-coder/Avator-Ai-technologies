@@ -3,7 +3,7 @@ title: PharmacyOS
 designation: SYS·001
 discipline: Applied Intelligence Platforms
 summary: An operations platform for pharmacies — inventory, sales and the daily workflow of a physical business, engineered into one system.
-status: Active system
+status: Active
 order: 1
 ---
 

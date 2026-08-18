@@ -1,7 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import { href } from '../../lib/site';
+import { TECH_STATUS_LABEL, href } from '../../lib/site';
 
 export async function getStaticPaths() {
   const entries = await getCollection('technologies');
@@ -14,11 +14,7 @@ export async function getStaticPaths() {
 const { entry } = Astro.props;
 const { Content } = await render(entry);
 
-const statusLabel: Record<string, string> = {
-  active: 'Active',
-  development: 'In development',
-  research: 'Research',
-};
+const statusLabel = TECH_STATUS_LABEL;
 
 const all = (await getCollection('technologies')).sort((a, b) => a.data.order - b.data.order);
 const idx = all.findIndex((e) => e.id === entry.id);

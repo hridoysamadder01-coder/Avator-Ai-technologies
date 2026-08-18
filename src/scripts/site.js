@@ -14,6 +14,12 @@ if (nav) {
 const menuBtn = document.querySelector('[data-menu-btn]');
 const menu = document.querySelector('[data-menu]');
 if (menuBtn && menu) {
+  const onFadeOut = (e) => {
+    if (e && (e.target !== menu || e.propertyName !== 'opacity')) return;
+    menu.hidden = true;
+    menu.removeEventListener('transitionend', onFadeOut);
+  };
+
   const setOpen = (open) => {
     menuBtn.setAttribute('aria-expanded', String(open));
     // keep keyboard/AT focus inside the open menu
@@ -21,18 +27,16 @@ if (menuBtn && menu) {
       el.inert = open;
     });
     if (open) {
+      menu.removeEventListener('transitionend', onFadeOut);
       menu.hidden = false;
       requestAnimationFrame(() => menu.classList.add('open'));
       document.body.style.overflow = 'hidden';
+      menu.querySelector('a')?.focus({ preventScroll: true });
     } else {
       menu.classList.remove('open');
       document.body.style.overflow = '';
-      const done = () => {
-        menu.hidden = true;
-        menu.removeEventListener('transitionend', done);
-      };
-      if (reduced) done();
-      else menu.addEventListener('transitionend', done);
+      if (reduced) onFadeOut();
+      else menu.addEventListener('transitionend', onFadeOut);
     }
   };
   menuBtn.addEventListener('click', () => {
