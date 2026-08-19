@@ -1,0 +1,537 @@
+---
+/**
+ * AVATOR Guide — the site's solution-routing agent. One persistent instance
+ * lives in the base layout (transition:persist), so the conversation survives
+ * client-side navigation. All intelligence is server-side (agent-worker/);
+ * with no backend configured this renders an honest fallback with quick links.
+ */
+import { GUIDE_API, href } from '../lib/site';
+---
+
+<div
+  class="guide-root"
+  id="avator-guide"
+  data-guide-root
+  data-api={GUIDE_API}
+  data-base={href('/')}
+  transition:persist="avator-guide"
+  transition:name="avator-guide"
+  transition:animate="none"
+>
+  <button
+    class="guide-launcher mono"
+    data-guide-launcher
+    aria-expanded="false"
+    aria-controls="guide-panel"
+  >
+    <span class="gl-dot" aria-hidden="true"></span>
+    Ask AVATOR
+  </button>
+
+  <section
+    class="guide-panel"
+    id="guide-panel"
+    data-guide-panel
+    role="dialog"
+    aria-label="AVATOR Guide — solution routing"
+    hidden
+  >
+    <header class="gp-head">
+      <div>
+        <p class="gp-title">AVATOR GUIDE</p>
+        <p class="mono gp-sub" data-guide-status>Solution routing</p>
+      </div>
+      <div class="gp-head-actions">
+        <button class="gp-tool mono" data-guide-clear title="Clear conversation">Clear</button>
+        <button class="gp-tool gp-close" data-guide-close aria-label="Close AVATOR Guide">
+          <span aria-hidden="true">✕</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="gp-scroll" data-guide-scroll>
+      <div class="gp-messages" data-guide-messages aria-live="polite"></div>
+    </div>
+
+    <div class="gp-chips" data-guide-chips>
+      <button class="gp-chip mono" data-chip>Automate a workflow</button>
+      <button class="gp-chip mono" data-chip>I need an API</button>
+      <button class="gp-chip mono" data-chip>Explore enterprise AI</button>
+      <button class="gp-chip mono" data-chip>What does AVATOR build?</button>
+    </div>
+
+    <footer class="gp-composer">
+      <label class="visually-hidden" for="guide-input">Message AVATOR Guide</label>
+      <textarea
+        id="guide-input"
+        class="gp-input"
+        data-guide-input
+        rows="1"
+        maxlength="2000"
+        placeholder="Describe what you're trying to build, fix or automate…"
+      ></textarea>
+      <button class="gp-mic" data-guide-mic aria-label="Start voice input" hidden>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <rect x="9" y="2" width="6" height="12" rx="3"></rect>
+          <path d="M5 10v1a7 7 0 0 0 14 0v-1M12 18v4"></path>
+        </svg>
+      </button>
+      <button class="gp-send mono" data-guide-send aria-label="Send message">→</button>
+    </footer>
+  </section>
+</div>
+
+<style>
+  .guide-root {
+    position: fixed;
+    right: var(--gutter);
+    bottom: 1.4rem;
+    z-index: 1400;
+  }
+
+  /* ---- launcher ---- */
+  .guide-launcher {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65em;
+    padding: 0.85em 1.3em;
+    border: 1px solid var(--line-strong);
+    background: rgba(13, 15, 19, 0.92);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: var(--bone-0);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-size: 0.72rem;
+    box-shadow:
+      inset 0 0.5px rgba(255, 255, 255, 0.18),
+      0 0 0 0.5px rgba(0, 0, 0, 0.8),
+      0 6px 24px rgba(0, 0, 0, 0.35);
+    transition:
+      border-color var(--sp-ui) var(--ease-out),
+      background-color var(--sp-ui) var(--ease-out),
+      transform var(--sp-quick) var(--ease-out);
+  }
+
+  .guide-launcher:hover {
+    border-color: rgba(240, 161, 62, 0.5);
+  }
+
+  .guide-launcher:active {
+    transform: translateY(1px);
+  }
+
+  .gl-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--signal);
+    box-shadow: 0 0 8px rgba(240, 161, 62, 0.8);
+  }
+
+  .guide-root[data-open] .guide-launcher {
+    display: none;
+  }
+
+  /* ---- panel ---- */
+  .guide-panel {
+    position: fixed;
+    right: var(--gutter);
+    bottom: 1.4rem;
+    z-index: 1450;
+    display: flex;
+    flex-direction: column;
+    width: min(430px, calc(100vw - 2rem));
+    height: min(620px, calc(100dvh - 6rem));
+    background: var(--ink-1);
+    border: 1px solid var(--line-strong);
+    box-shadow:
+      inset 0 0.5px rgba(255, 255, 255, 0.18),
+      0 0 0 0.5px rgba(0, 0, 0, 0.8),
+      0 24px 64px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transform: translateY(14px);
+    pointer-events: none;
+    transition:
+      opacity 0.28s var(--ease-out),
+      transform 0.28s var(--ease-out);
+  }
+
+  .guide-panel.open {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+
+  .gp-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem 1.1rem 0.85rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .gp-title {
+    font-weight: 620;
+    font-stretch: 116%;
+    letter-spacing: 0.08em;
+    font-size: 0.9rem;
+  }
+
+  .gp-sub {
+    margin-top: 0.3rem;
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--steel);
+  }
+
+  .gp-sub[data-state='live']::before {
+    content: '● ';
+    color: var(--signal);
+  }
+
+  .gp-sub[data-state='offline']::before {
+    content: '○ ';
+    color: var(--steel-dim);
+  }
+
+  .gp-head-actions {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+  }
+
+  .gp-tool {
+    color: var(--steel);
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 0.5em 0.7em;
+    border: 1px solid transparent;
+    transition: color var(--sp-ui), border-color var(--sp-ui);
+  }
+
+  .gp-tool:hover {
+    color: var(--bone-0);
+    border-color: var(--line);
+  }
+
+  .gp-close {
+    font-size: 0.8rem;
+  }
+
+  /* ---- messages ---- */
+  .gp-scroll {
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 1.1rem;
+  }
+
+  .gp-messages {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .gp-messages :global(.gm) {
+    display: grid;
+    gap: 0.35rem;
+    max-width: 92%;
+  }
+
+  .gp-messages :global(.gm-you) {
+    justify-self: end;
+    text-align: right;
+  }
+
+  .gp-messages :global(.gm-label) {
+    font-family: var(--f-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--steel-dim);
+  }
+
+  .gp-messages :global(.gm-you .gm-label) {
+    color: var(--steel);
+  }
+
+  .gp-messages :global(.gm-body) {
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: var(--bone-0);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .gp-messages :global(.gm-avator .gm-body) {
+    border-left: 2px solid var(--line-strong);
+    padding-left: 0.8rem;
+    color: var(--bone-1);
+  }
+
+  .gp-messages :global(.gm-listen) {
+    justify-self: start;
+    font-family: var(--f-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--steel);
+    padding: 0.3em 0;
+    border-bottom: 1px solid var(--line);
+    cursor: pointer;
+  }
+
+  .gp-messages :global(.gm-listen:hover) {
+    color: var(--signal);
+    border-color: var(--signal);
+  }
+
+  .gp-messages :global(.gm-thinking) {
+    color: var(--steel);
+    font-family: var(--f-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+  }
+
+  /* recommendation card */
+  .gp-messages :global(.gm-card) {
+    border: 1px solid var(--line-strong);
+    background: var(--ink-2);
+    padding: 0.95rem 1rem 1rem;
+    display: grid;
+    gap: 0.55rem;
+    box-shadow: inset 0 0.5px rgba(255, 255, 255, 0.14);
+    max-width: 100%;
+  }
+
+  .gp-messages :global(.gm-card .gc-k) {
+    font-family: var(--f-mono);
+    font-size: 0.56rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--signal);
+  }
+
+  .gp-messages :global(.gm-card .gc-title) {
+    font-weight: 600;
+    font-stretch: 108%;
+    font-size: 1.02rem;
+    color: var(--bone-0);
+  }
+
+  .gp-messages :global(.gm-card .gc-why) {
+    font-size: 0.86rem;
+    line-height: 1.5;
+    color: var(--bone-1);
+  }
+
+  .gp-messages :global(.gm-card .gc-cta) {
+    justify-self: start;
+    margin-top: 0.35rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    font-family: var(--f-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.8em 1.2em;
+    background: var(--bone-0);
+    color: var(--ink-0);
+    border: 1px solid var(--bone-0);
+    cursor: pointer;
+    transition: background-color var(--sp-ui), border-color var(--sp-ui);
+  }
+
+  .gp-messages :global(.gm-card .gc-cta:hover) {
+    background: var(--signal);
+    border-color: var(--signal);
+  }
+
+  /* quick links (fallback + cards) */
+  .gp-messages :global(.gm-links) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .gp-messages :global(.gm-links a) {
+    font-family: var(--f-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--bone-1);
+    border: 1px solid var(--line-strong);
+    padding: 0.6em 1em;
+    transition: color var(--sp-ui), border-color var(--sp-ui);
+  }
+
+  .gp-messages :global(.gm-links a:hover) {
+    color: var(--signal);
+    border-color: rgba(240, 161, 62, 0.5);
+  }
+
+  /* brief actions */
+  .gp-messages :global(.gm-brief-actions) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .gp-messages :global(.gm-brief-actions button) {
+    font-family: var(--f-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--bone-1);
+    border: 1px solid var(--line-strong);
+    padding: 0.6em 1em;
+    cursor: pointer;
+    transition: color var(--sp-ui), border-color var(--sp-ui);
+  }
+
+  .gp-messages :global(.gm-brief-actions button:hover) {
+    color: var(--signal);
+    border-color: rgba(240, 161, 62, 0.5);
+  }
+
+  /* ---- chips ---- */
+  .gp-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    padding: 0 1.1rem 0.8rem;
+  }
+
+  .gp-chips[hidden] {
+    display: none;
+  }
+
+  .gp-chip {
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--bone-1);
+    border: 1px solid var(--line);
+    padding: 0.55em 0.9em;
+    transition: color var(--sp-ui), border-color var(--sp-ui);
+  }
+
+  .gp-chip:hover {
+    color: var(--signal);
+    border-color: rgba(240, 161, 62, 0.5);
+  }
+
+  /* ---- composer ---- */
+  .gp-composer {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    padding: 0.8rem 1.1rem calc(0.9rem + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--line);
+  }
+
+  .gp-input {
+    flex: 1;
+    resize: none;
+    background: var(--ink-0);
+    border: 1px solid var(--line);
+    color: var(--bone-0);
+    font: inherit;
+    font-size: 16px; /* prevents iOS focus zoom */
+    line-height: 1.45;
+    padding: 0.65em 0.8em;
+    max-height: 7.5em;
+    transition: border-color var(--sp-ui);
+  }
+
+  .gp-input:focus {
+    border-color: var(--line-strong);
+    outline: none;
+  }
+
+  .gp-input:focus-visible {
+    outline: 2px solid var(--signal);
+    outline-offset: 1px;
+  }
+
+  .gp-mic,
+  .gp-send {
+    flex: none;
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--line-strong);
+    color: var(--bone-1);
+    transition:
+      color var(--sp-ui),
+      border-color var(--sp-ui),
+      background-color var(--sp-ui);
+  }
+
+  .gp-send {
+    background: var(--bone-0);
+    color: var(--ink-0);
+    border-color: var(--bone-0);
+    font-size: 1rem;
+  }
+
+  .gp-send:hover {
+    background: var(--signal);
+    border-color: var(--signal);
+  }
+
+  .gp-mic:hover {
+    color: var(--bone-0);
+    border-color: var(--bone-1);
+  }
+
+  .gp-mic[data-state='listening'] {
+    color: var(--ink-0);
+    background: var(--signal);
+    border-color: var(--signal);
+    animation: mic-pulse 1.6s ease-in-out infinite;
+  }
+
+  .gp-mic[data-state='processing'] {
+    color: var(--signal);
+    border-color: rgba(240, 161, 62, 0.5);
+  }
+
+  @keyframes mic-pulse {
+    50% {
+      box-shadow: 0 0 0 6px rgba(240, 161, 62, 0.18);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gp-mic[data-state='listening'] {
+      animation: none;
+    }
+  }
+
+  /* ---- mobile: full-screen sheet ---- */
+  @media (max-width: 720px) {
+    .guide-root {
+      right: 1rem;
+      bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    .guide-panel {
+      inset: 0;
+      width: 100%;
+      height: 100dvh;
+      border: none;
+      border-top: 1px solid var(--line-strong);
+      padding-top: env(safe-area-inset-top, 0px);
+    }
+  }
+</style>
+
+<script>
+  import '../scripts/avator-guide';
+</script>

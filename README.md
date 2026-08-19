@@ -38,6 +38,26 @@ Schemas for each collection are defined in `src/content.config.ts`.
 Site-wide facts (name, contact email, coordinates, nav) live in
 `src/lib/site.ts`.
 
+## AVATOR Guide
+
+The site carries **AVATOR Guide** — a solution-routing agent ("Ask AVATOR",
+lower right). It understands English, Bangla and Banglish, matches visitor
+needs to verified public AVATOR capabilities only (truth pack generated from
+this repo's content), returns structured recommendations with safe internal
+routes, supports tap-to-speak voice input and optional Listen playback, and
+can hand a prepared brief to the Contact page.
+
+- Frontend: `src/components/AvatorGuide.astro` + `src/scripts/avator-guide.ts`
+  (persistent across navigations, sessionStorage-backed, honest fallback mode
+  when no backend is configured)
+- Backend: `agent-worker/` — a separate Cloudflare Worker holding the AI
+  provider key as an encrypted secret. Setup and deploy: `agent-worker/README.md`
+- Truth pack: `scripts/build-agent-knowledge.mjs` regenerates
+  `agent-worker/src/knowledge.json` from the content collections
+
+To activate the Guide after deploying the Worker, set its URL in
+`src/lib/site.ts` (`PROD_GUIDE_API`).
+
 ## Deployment
 
 Pushes to the deploy branches trigger the GitHub Actions workflow, which
