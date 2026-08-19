@@ -1,23 +1,80 @@
 ---
 /**
- * AVATOR Guide — the site's solution-routing agent. One persistent instance
- * lives in the base layout (transition:persist), so the conversation survives
- * client-side navigation. All intelligence is server-side (agent-worker/);
- * with no backend configured this renders an honest fallback with quick links.
+ * AVATOR Guide — the site's browser-local solution-routing agent. One
+ * persistent instance lives in the base layout (transition:persist), so the
+ * conversation survives client-side navigation. Routing is deterministic and
+ * runs entirely in the browser against the knowledge pack below, which is
+ * built at build time from the site's own public content collections.
+ * No backend, no API key, no per-message cost.
  */
-import { GUIDE_API, href } from '../lib/site';
+import { getCollection } from 'astro:content';
+import { SITE, href } from '../lib/site';
+
+const technologies = (await getCollection('technologies'))
+  .sort((a, b) => a.data.order - b.data.order)
+  .map((t) => ({
+    slug: t.id,
+    title: t.data.title,
+    designation: t.data.designation,
+    summary: t.data.summary,
+    capabilities: t.data.capabilities,
+    status: t.data.status,
+    href: href(`/technology/${t.id}/`),
+  }));
+
+const products = (await getCollection('products'))
+  .sort((a, b) => a.data.order - b.data.order)
+  .map((p) => ({
+    slug: p.id,
+    title: p.data.name,
+    designation: p.data.designation,
+    summary: p.data.summary,
+    category: p.data.category,
+    status: p.data.status,
+    href: href(`/products/${p.id}/`),
+  }));
+
+const work = (await getCollection('work'))
+  .sort((a, b) => a.data.order - b.data.order)
+  .map((w) => ({
+    slug: w.id,
+    title: w.data.title,
+    designation: w.data.designation,
+    summary: w.data.summary,
+    discipline: w.data.discipline,
+    status: w.data.status,
+    href: href(`/work/${w.id}/`),
+  }));
+
+const knowledge = {
+  company: { name: SITE.name, description: SITE.description, origin: SITE.origin },
+  technologies,
+  products,
+  work,
+  routes: [
+    { kind: 'technology', title: 'Technology', summary: 'The six capability areas every AVATOR product is built from.', href: href('/technology/') },
+    { kind: 'products', title: 'Products', summary: 'The honest state of the commercial product line.', href: href('/products/') },
+    { kind: 'work', title: 'Work', summary: 'Selected real systems from the engineering practice.', href: href('/work/') },
+    { kind: 'developers', title: 'Developers', summary: 'The AVATOR platform — in design, early access by request.', href: href('/developers/') },
+    { kind: 'enterprise', title: 'Enterprise', summary: 'Private deployments, custom systems, direct engineering.', href: href('/enterprise/') },
+    { kind: 'company', title: 'Company', summary: 'Who is building AVATOR, principles and direction.', href: href('/company/') },
+    { kind: 'contact', title: 'Contact', summary: 'Talk to AVATOR — one inbox, read by the founder.', href: href('/contact/') },
+  ],
+};
+
+const knowledgeJson = JSON.stringify(knowledge).replace(/</g, '\\u003c');
 ---
 
 <div
   class="guide-root"
   id="avator-guide"
   data-guide-root
-  data-api={GUIDE_API}
   data-base={href('/')}
   transition:persist="avator-guide"
   transition:name="avator-guide"
   transition:animate="none"
 >
+  <script is:inline type="application/json" data-guide-knowledge set:html={knowledgeJson} />
   <button
     class="guide-launcher mono"
     data-guide-launcher
