@@ -14,16 +14,6 @@ export const SITE = {
   founder: 'Hridoy Samadder',
 } as const;
 
-/**
- * AVATOR Guide backend (public URL, not a secret — the provider API key lives
- * only inside the Worker). Leave empty until the Worker is deployed; the Guide
- * then runs in fallback mode with static quick links. See agent-worker/README.md.
- * Local dev can override with PUBLIC_AVATOR_GUIDE_API.
- */
-const PROD_GUIDE_API = '';
-export const GUIDE_API =
-  (import.meta.env.PUBLIC_AVATOR_GUIDE_API as string | undefined) || PROD_GUIDE_API;
-
 /** Prefix a root-relative path with the deployment base path. */
 export function href(path: string): string {
   const base = import.meta.env.BASE_URL.replace(/\/$/, '');

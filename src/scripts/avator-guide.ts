@@ -1,61 +1,45 @@
 /**
- * AVATOR Guide controller. The component instance is persisted across
- * ClientRouter navigations (transition:persist), so this module initializes
- * exactly once and the conversation survives internal navigation.
+ * AVATOR Guide controller — browser-local solution routing.
  *
- * Everything rendered here uses textContent — model output is never injected
- * as HTML. Recommendation hrefs are validated server-side against the public
- * route catalog and re-checked here against the site base path.
+ * No backend, no API key, no network calls for conversation: messages run
+ * through the deterministic engine in src/lib/avator-guide/ against a
+ * knowledge pack serialized into the page at build time from the site's own
+ * public content. Voice input uses the browser's Web Speech Recognition where
+ * available; Listen uses browser speech synthesis. Everything rendered here
+ * uses textContent, and every route is re-checked against the site base path.
+ *
+ * The component instance is persisted across ClientRouter navigations
+ * (transition:persist), so this module initializes exactly once.
  */
 
 import { navigate } from 'astro:transitions/client';
+import { buildBrief, respond } from '../lib/avator-guide/engine.ts';
+import type {
+  GuideConversationState,
+  GuideKnowledge,
+  GuideRecommendation,
+  GuideResult,
+} from '../lib/avator-guide/types.ts';
 
 type Role = 'user' | 'assistant';
 
-interface Recommendation {
-  kind: string;
-  title: string;
-  reason: string;
-  href: string;
-  ctaLabel: string;
-  confidence: string;
-}
-
-interface Brief {
-  goal?: string | null;
-  industry?: string | null;
-  currentWorkflow?: string | null;
-  desiredOutcome?: string | null;
-  scale?: string | null;
-  integrationNeed?: string | null;
-  privacyConstraints?: string | null;
-  recommendedPath?: string | null;
-  unresolvedQuestions?: string[] | null;
-}
-
-interface GuideApiResponse {
-  message: string;
-  state: string;
-  recommendation?: Recommendation | null;
-  brief?: Brief | null;
-  mode?: string;
-  error?: string;
+/* Minimal Web Speech Recognition typings (not yet in lib.dom everywhere). */
+interface SpeechRecognitionLike {
+  lang: string;
+  interimResults: boolean;
+  maxAlternatives: number;
+  start(): void;
+  stop(): void;
+  abort(): void;
+  onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+  onerror: ((e: { error?: string }) => void) | null;
+  onend: (() => void) | null;
 }
 
 const STORE_KEY = 'avator-guide:session';
 const BRIEF_KEY = 'avator-guide:brief';
 const GREETING =
   "Tell me what you're trying to build, fix, automate, or understand. I'll point you to the right AVATOR path.";
-const OFFLINE_NOTE =
-  "The guide can't run a conversational match right now. These paths cover everything public:";
-
-const QUICK_LINKS: Array<[string, string]> = [
-  ['Technology', '/technology/'],
-  ['Work', '/work/'],
-  ['Developers', '/developers/'],
-  ['Enterprise', '/enterprise/'],
-  ['Contact', '/contact/'],
-];
 
 function initGuide(): void {
   const rootMaybe = document.querySelector<HTMLElement>('[data-guide-root]');
@@ -63,7 +47,6 @@ function initGuide(): void {
   const root: HTMLElement = rootMaybe;
   root.dataset.init = '1';
 
-  const api = root.dataset.api ?? '';
   const base = (root.dataset.base ?? '/').replace(/\/$/, '');
   const launcher = root.querySelector<HTMLButtonElement>('[data-guide-launcher]')!;
   const panel = root.querySelector<HTMLElement>('[data-guide-panel]')!;
@@ -79,10 +62,18 @@ function initGuide(): void {
 
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-  let sessionId: string = crypto.randomUUID();
+  /* knowledge pack — serialized into the page at build time */
+  let knowledge: GuideKnowledge | null = null;
+  try {
+    const packEl = root.querySelector('[data-guide-knowledge]');
+    knowledge = packEl?.textContent ? (JSON.parse(packEl.textContent) as GuideKnowledge) : null;
+  } catch {
+    knowledge = null;
+  }
+
   let history: Array<{ role: Role; content: string }> = [];
-  let uiState: 'closed' | 'idle' | 'sending' = 'closed';
-  let lastBrief: Brief | null = null;
+  let convState: GuideConversationState = {};
+  let uiState: 'closed' | 'idle' | 'routing' = 'closed';
 
   /* ---------- persistence ---------- */
 
@@ -90,7 +81,7 @@ function initGuide(): void {
     try {
       sessionStorage.setItem(
         STORE_KEY,
-        JSON.stringify({ sessionId, history: history.slice(-24), brief: lastBrief }),
+        JSON.stringify({ history: history.slice(-30), convState }),
       );
     } catch {
       /* storage unavailable — in-memory only */
@@ -102,13 +93,11 @@ function initGuide(): void {
       const raw = sessionStorage.getItem(STORE_KEY);
       if (!raw) return;
       const data = JSON.parse(raw) as {
-        sessionId?: string;
         history?: Array<{ role: Role; content: string }>;
-        brief?: Brief | null;
+        convState?: GuideConversationState;
       };
-      if (data.sessionId) sessionId = data.sessionId;
       if (Array.isArray(data.history)) history = data.history;
-      lastBrief = data.brief ?? null;
+      if (data.convState) convState = data.convState;
       history.forEach((m) => renderMessage(m.role, m.content));
       if (history.length) chipsEl.hidden = true;
     } catch {
@@ -148,41 +137,38 @@ function initGuide(): void {
     return wrap;
   }
 
-  function renderQuickLinks(): void {
-    const wrap = el('div', 'gm gm-avator');
-    const links = el('div', 'gm-links');
-    for (const [label, path] of QUICK_LINKS) {
-      const a = el('a', undefined, label);
-      a.setAttribute('href', `${base}${path}`);
-      a.addEventListener('click', (e) => {
-        e.preventDefault();
-        goTo(`${base}${path}`);
+  function renderQuickReplies(replies: string[]): void {
+    const wrap = el('div', 'gm gm-avator gm-brief-actions');
+    wrap.setAttribute('data-quick-replies', '1');
+    for (const reply of replies) {
+      const b = el('button', undefined, reply);
+      b.addEventListener('click', () => {
+        wrap.remove();
+        send(reply);
       });
-      links.appendChild(a);
+      wrap.appendChild(b);
     }
-    wrap.appendChild(links);
     messagesEl.appendChild(wrap);
     scrollToEnd();
   }
 
-  function renderRecommendation(rec: Recommendation): void {
-    if (!rec.href.startsWith(`${base}/`) && rec.href !== `${base}/`) return;
+  function renderRecommendation(recc: GuideRecommendation): void {
+    if (!recc.href.startsWith(`${base}/`) && recc.href !== `${base}/`) return;
     const card = el('div', 'gm gm-card');
     card.appendChild(el('p', 'gc-k', 'Match'));
-    card.appendChild(el('p', 'gc-title', rec.title));
+    card.appendChild(el('p', 'gc-title', recc.title));
     card.appendChild(el('p', 'gc-k', 'Why'));
-    card.appendChild(el('p', 'gc-why', rec.reason));
+    card.appendChild(el('p', 'gc-why', recc.reason));
     const cta = el('button', 'gc-cta');
-    cta.appendChild(document.createTextNode(rec.ctaLabel || `Open ${rec.title}`));
+    cta.appendChild(document.createTextNode(recc.ctaLabel || `Open ${recc.title}`));
     cta.appendChild(el('span', undefined, ' →'));
-    cta.addEventListener('click', () => goTo(rec.href));
+    cta.addEventListener('click', () => goTo(recc.href));
     card.appendChild(cta);
     messagesEl.appendChild(card);
     scrollToEnd();
   }
 
   function renderBriefOffer(): void {
-    if (!lastBrief?.goal) return;
     if (messagesEl.querySelector('[data-brief-offer]')) return;
     const wrap = el('div', 'gm gm-avator gm-brief-actions');
     wrap.setAttribute('data-brief-offer', '1');
@@ -196,35 +182,16 @@ function initGuide(): void {
     scrollToEnd();
   }
 
-  function briefText(): string {
-    const b = lastBrief ?? {};
-    const lines: string[] = ['AVATOR GUIDE — CONVERSATION BRIEF', ''];
-    const add = (label: string, v?: string | null) => {
-      if (v) lines.push(`${label}: ${v}`);
-    };
-    add('Goal', b.goal);
-    add('Industry', b.industry);
-    add('Current workflow', b.currentWorkflow);
-    add('Desired outcome', b.desiredOutcome);
-    add('Scale', b.scale);
-    add('Integration need', b.integrationNeed);
-    add('Privacy constraints', b.privacyConstraints);
-    add('Recommended AVATOR path', b.recommendedPath);
-    if (b.unresolvedQuestions?.length) {
-      lines.push('Open questions: ' + b.unresolvedQuestions.join(' · '));
-    }
-    return lines.join('\n');
-  }
-
   function renderBriefCard(): void {
+    const brief = buildBrief(convState);
     const card = el('div', 'gm gm-card');
     card.appendChild(el('p', 'gc-k', 'Brief'));
-    card.appendChild(el('p', 'gm-body', briefText()));
+    card.appendChild(el('p', 'gm-body', brief));
     const actions = el('div', 'gm-brief-actions');
     const toContact = el('button', undefined, 'Take it to Contact →');
     toContact.addEventListener('click', () => {
       try {
-        sessionStorage.setItem(BRIEF_KEY, briefText());
+        sessionStorage.setItem(BRIEF_KEY, brief);
       } catch {
         /* ignore */
       }
@@ -233,7 +200,7 @@ function initGuide(): void {
     const copy = el('button', undefined, 'Copy');
     copy.addEventListener('click', async () => {
       try {
-        await navigator.clipboard.writeText(briefText());
+        await navigator.clipboard.writeText(brief);
         copy.textContent = 'Copied';
         setTimeout(() => (copy.textContent = 'Copy'), 1500);
       } catch {
@@ -253,6 +220,7 @@ function initGuide(): void {
 
   function setBackgroundInert(on: boolean): void {
     document.querySelectorAll('main, footer, header.nav').forEach((n) => {
+      if (root.contains(n)) return; // the guide's own composer is a <footer>
       (n as HTMLElement).inert = on;
     });
   }
@@ -270,16 +238,6 @@ function initGuide(): void {
     launcher.setAttribute('aria-expanded', 'true');
     if (!messagesEl.childElementCount) {
       renderMessage('note', GREETING);
-      if (!api) {
-        setStatus('offline', 'Guide offline');
-        renderMessage('note', OFFLINE_NOTE);
-        renderQuickLinks();
-        input.disabled = true;
-        sendBtn.disabled = true;
-        micBtn.hidden = true;
-        input.placeholder = 'Conversational matching is offline for now.';
-        chipsEl.hidden = true;
-      }
     }
     input.focus({ preventScroll: true });
   }
@@ -293,11 +251,10 @@ function initGuide(): void {
     setBackgroundInert(false);
     launcher.setAttribute('aria-expanded', 'false');
     stopSpeech();
+    stopRecognition();
     if (immediate || reduced.matches) {
       panel.hidden = true;
     } else {
-      // transitions on persisted elements can be cancelled by the router's
-      // DOM swap — a timeout is the reliable end-of-fade signal
       window.setTimeout(() => {
         if (uiState === 'closed') panel.hidden = true;
       }, 320);
@@ -310,146 +267,120 @@ function initGuide(): void {
     navigate(path);
   }
 
-  function setStatus(state: 'live' | 'offline' | 'dev', text: string): void {
-    statusEl.dataset.state = state === 'dev' ? 'live' : state;
-    statusEl.textContent = text;
-  }
+  /* ---------- conversation (fully local) ---------- */
 
-  /* ---------- conversation ---------- */
-
-  async function send(text: string): Promise<void> {
+  function send(text: string): void {
     const content = text.trim().slice(0, 2000);
-    if (!content || uiState === 'sending' || !api) return;
+    if (!content || uiState === 'routing' || !knowledge) return;
 
-    uiState = 'sending';
+    uiState = 'routing';
     chipsEl.hidden = true;
+    messagesEl.querySelector('[data-quick-replies]')?.remove();
     history.push({ role: 'user', content });
     renderMessage('user', content);
     input.value = '';
     autoSize();
-    save();
 
-    const thinking = el('div', 'gm gm-avator');
-    thinking.appendChild(el('p', 'gm-thinking', 'AVATOR · routing…'));
-    messagesEl.appendChild(thinking);
+    const tick = el('div', 'gm gm-avator');
+    tick.appendChild(el('p', 'gm-thinking', 'AVATOR · routing'));
+    messagesEl.appendChild(tick);
     scrollToEnd();
 
-    try {
-      const res = await fetch(`${api}/v1/guide`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: AbortSignal.timeout(60_000),
-        body: JSON.stringify({
-          sessionId,
-          messages: history.slice(-24),
-          page: { path: location.pathname, title: document.title.slice(0, 200) },
-        }),
-      });
-      thinking.remove();
-
-      if (!res.ok) throw new Error(`backend ${res.status}`);
-      const data = (await res.json()) as GuideApiResponse;
-
-      history.push({ role: 'assistant', content: data.message });
-      renderMessage('assistant', data.message);
-      if (data.recommendation) renderRecommendation(data.recommendation);
-      if (data.brief) {
-        lastBrief = data.brief;
-        renderBriefOffer();
+    // local responses are instant — a short deliberate beat keeps the
+    // exchange legible without faking model latency
+    const beat = reduced.matches ? 0 : 240;
+    window.setTimeout(() => {
+      let result: GuideResult;
+      try {
+        const out = respond({
+          message: content,
+          state: convState,
+          knowledge: knowledge!,
+          pagePath: location.pathname,
+        });
+        result = out.result;
+        convState = out.state;
+      } catch {
+        result = {
+          message:
+            'Something went wrong on this device. These paths always work: Technology, Work, Developers, Enterprise, Contact.',
+          state: 'discovering',
+        };
       }
-      setStatus(
-        data.mode === 'mock' ? 'dev' : 'live',
-        data.mode === 'mock' ? 'Dev mode — deterministic replies' : 'Solution routing',
-      );
+      tick.remove();
+      history.push({ role: 'assistant', content: result.message });
+      renderMessage('assistant', result.message);
+      if (result.recommendation) renderRecommendation(result.recommendation);
+      if (result.quickReplies?.length) renderQuickReplies(result.quickReplies);
+      if (result.briefReady) renderBriefOffer();
       save();
-    } catch {
-      thinking.remove();
-      renderMessage('note', "The guide couldn't respond just now. The paths below always work — or try again.");
-      renderQuickLinks();
-      setStatus('offline', 'Connection issue');
-    } finally {
-      uiState = (uiState as 'closed' | 'idle' | 'sending') === 'closed' ? 'closed' : 'idle';
-    }
+      uiState = uiState === 'closed' ? 'closed' : 'idle';
+    }, beat);
   }
 
-  /* ---------- voice input ---------- */
+  /* ---------- voice input — browser Web Speech Recognition, $0 ---------- */
 
-  let recorder: MediaRecorder | null = null;
-  let recChunks: BlobPart[] = [];
-  let recTimer = 0;
+  const SR: (new () => SpeechRecognitionLike) | undefined =
+    (window as unknown as { SpeechRecognition?: new () => SpeechRecognitionLike })
+      .SpeechRecognition ??
+    (window as unknown as { webkitSpeechRecognition?: new () => SpeechRecognitionLike })
+      .webkitSpeechRecognition;
 
-  const voiceSupported =
-    !!navigator.mediaDevices?.getUserMedia && typeof MediaRecorder !== 'undefined' && !!api;
-  if (voiceSupported) micBtn.hidden = false;
+  let recognition: SpeechRecognitionLike | null = null;
 
-  function voiceNote(msg: string): void {
-    renderMessage('note', msg);
+  if (SR) micBtn.hidden = false;
+
+  function voiceLang(): string {
+    if (convState.style === 'bn' || convState.style === 'banglish') return 'bn-BD';
+    const last = history.filter((m) => m.role === 'user').pop();
+    if (last && /[ঀ-৿]/.test(last.content)) return 'bn-BD';
+    return navigator.language?.startsWith('bn') ? 'bn-BD' : 'en-US';
   }
 
-  async function startRecording(): Promise<void> {
+  function startRecognition(): void {
+    if (!SR || recognition) return;
     stopSpeech();
-    micBtn.dataset.state = 'requesting';
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'].find((t) =>
-        MediaRecorder.isTypeSupported(t),
-      );
-      recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
-      recChunks = [];
-      recorder.ondataavailable = (e) => {
-        if (e.data.size) recChunks.push(e.data);
+      recognition = new SR();
+      recognition.lang = voiceLang();
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+      recognition.onresult = (e) => {
+        const transcript = e.results[0]?.[0]?.transcript ?? '';
+        if (transcript) {
+          // transcript lands in the composer so the visitor can review/edit
+          input.value = transcript;
+          autoSize();
+          input.focus();
+        }
       };
-      recorder.onstop = async () => {
-        stream.getTracks().forEach((t) => t.stop());
-        micBtn.dataset.state = 'processing';
-        micBtn.setAttribute('aria-label', 'Processing voice input');
-        await transcribe(new Blob(recChunks, { type: recorder?.mimeType || 'audio/webm' }));
-        micBtn.dataset.state = '';
-        micBtn.setAttribute('aria-label', 'Start voice input');
-        recorder = null;
+      recognition.onerror = (e) => {
+        stopRecognition();
+        if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+          renderMessage('note', "Voice isn't available right now. You can keep typing here.");
+        }
       };
-      recorder.start();
+      recognition.onend = () => stopRecognition();
+      recognition.start();
       micBtn.dataset.state = 'listening';
       micBtn.setAttribute('aria-label', 'Stop voice input');
-      // hard cap: short voice messages only
-      recTimer = window.setTimeout(() => stopRecording(), 25_000);
     } catch {
-      micBtn.dataset.state = '';
-      voiceNote("Voice isn't available right now. You can keep typing here.");
+      stopRecognition();
+      renderMessage('note', "Voice isn't available right now. You can keep typing here.");
     }
   }
 
-  function stopRecording(): void {
-    clearTimeout(recTimer);
-    if (recorder && recorder.state !== 'inactive') recorder.stop();
-  }
-
-  async function transcribe(blob: Blob): Promise<void> {
-    if (blob.size < 1200) {
-      voiceNote("That recording was too short — tap the mic and speak, then tap again to stop.");
-      return;
+  function stopRecognition(): void {
+    if (recognition) {
+      try {
+        recognition.stop();
+      } catch {
+        /* already stopped */
+      }
+      recognition = null;
     }
-    if (blob.size > 1_400_000) {
-      voiceNote('That recording was too long — keep voice messages under ~25 seconds.');
-      return;
-    }
-    try {
-      const res = await fetch(`${api}/v1/guide/transcribe`, {
-        method: 'POST',
-        headers: { 'Content-Type': blob.type.split(';')[0] || 'audio/webm' },
-        signal: AbortSignal.timeout(30_000),
-        body: blob,
-      });
-      if (!res.ok) throw new Error(String(res.status));
-      const data = (await res.json()) as { text?: string };
-      if (!data.text) throw new Error('empty');
-      // transcript is visible in the composer before it is sent
-      input.value = data.text;
-      autoSize();
-      input.focus();
-    } catch {
-      voiceNote("Couldn't transcribe that. You can keep typing here.");
-    }
+    micBtn.dataset.state = '';
+    micBtn.setAttribute('aria-label', 'Start voice input');
   }
 
   /* ---------- listen (speech synthesis — user-initiated only) ---------- */
@@ -495,18 +426,18 @@ function initGuide(): void {
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      void send(input.value);
+      send(input.value);
     }
   });
-  sendBtn.addEventListener('click', () => void send(input.value));
+  sendBtn.addEventListener('click', () => send(input.value));
   micBtn.addEventListener('click', () => {
-    if (micBtn.dataset.state === 'listening') stopRecording();
-    else if (!micBtn.dataset.state) void startRecording();
+    if (micBtn.dataset.state === 'listening') stopRecognition();
+    else startRecognition();
   });
 
   chipsEl.addEventListener('click', (e) => {
     const chip = (e.target as HTMLElement).closest('[data-chip]');
-    if (chip) void send(chip.textContent ?? '');
+    if (chip) send(chip.textContent ?? '');
   });
 
   /* ---------- shell events ---------- */
@@ -519,9 +450,9 @@ function initGuide(): void {
 
   clearBtn.addEventListener('click', () => {
     stopSpeech();
+    stopRecognition();
     history = [];
-    lastBrief = null;
-    sessionId = crypto.randomUUID();
+    convState = {};
     messagesEl.textContent = '';
     try {
       sessionStorage.removeItem(STORE_KEY);
@@ -529,16 +460,12 @@ function initGuide(): void {
     } catch {
       /* ignore */
     }
-    chipsEl.hidden = !api ? true : false;
+    chipsEl.hidden = false;
     renderMessage('note', GREETING);
-    if (!api) {
-      renderMessage('note', OFFLINE_NOTE);
-      renderQuickLinks();
-    }
   });
 
-  if (api) setStatus('live', 'Solution routing');
-  else setStatus('offline', 'Guide offline');
+  statusEl.dataset.state = 'live';
+  statusEl.textContent = 'Local routing';
   restore();
 }
 
@@ -549,7 +476,7 @@ function initContactHandoff(): void {
   if (!slot || slot.dataset.done) return;
   let brief: string | null = null;
   try {
-    brief = sessionStorage.getItem('avator-guide:brief');
+    brief = sessionStorage.getItem(BRIEF_KEY);
   } catch {
     return;
   }
@@ -565,8 +492,7 @@ function initContactHandoff(): void {
 
   const box = make('div', 'guide-brief-box');
   box.appendChild(make('p', 'mono guide-brief-label', 'Prepared by AVATOR Guide'));
-  const pre = make('pre', 'guide-brief-pre', brief);
-  box.appendChild(pre);
+  box.appendChild(make('pre', 'guide-brief-pre', brief));
 
   const actions = make('div', 'guide-brief-actions');
   const mail = make('a', 'btn btn--solid') as HTMLAnchorElement;
@@ -590,7 +516,7 @@ function initContactHandoff(): void {
   remove.textContent = 'Remove';
   remove.addEventListener('click', () => {
     try {
-      sessionStorage.removeItem('avator-guide:brief');
+      sessionStorage.removeItem(BRIEF_KEY);
     } catch {
       /* ignore */
     }

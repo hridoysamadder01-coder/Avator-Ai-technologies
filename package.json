@@ -9,7 +9,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "check": "astro check"
+    "check": "astro check",
+    "test:guide": "node --experimental-strip-types src/lib/avator-guide/engine.test.ts"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",

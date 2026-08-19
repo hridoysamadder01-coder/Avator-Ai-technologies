@@ -40,23 +40,31 @@ Site-wide facts (name, contact email, coordinates, nav) live in
 
 ## AVATOR Guide
 
-The site carries **AVATOR Guide** — a solution-routing agent ("Ask AVATOR",
-lower right). It understands English, Bangla and Banglish, matches visitor
-needs to verified public AVATOR capabilities only (truth pack generated from
-this repo's content), returns structured recommendations with safe internal
-routes, supports tap-to-speak voice input and optional Listen playback, and
-can hand a prepared brief to the Contact page.
+The site carries **AVATOR Guide** — a solution-routing assistant ("Ask
+AVATOR", lower right). **It requires no backend and no API key**: routing
+runs entirely in the visitor's browser through a small deterministic engine,
+so operating it costs nothing and no conversation data leaves the page.
 
-- Frontend: `src/components/AvatorGuide.astro` + `src/scripts/avator-guide.ts`
-  (persistent across navigations, sessionStorage-backed, honest fallback mode
-  when no backend is configured)
-- Backend: `agent-worker/` — a separate Cloudflare Worker holding the AI
-  provider key as an encrypted secret. Setup and deploy: `agent-worker/README.md`
-- Truth pack: `scripts/build-agent-knowledge.mjs` regenerates
-  `agent-worker/src/knowledge.json` from the content collections
-
-To activate the Guide after deploying the Worker, set its URL in
-`src/lib/site.ts` (`PROD_GUIDE_API`).
+- Engine: `src/lib/avator-guide/` — tokenization and Bangla/Banglish
+  normalization, weighted intent scoring, and content matching against a
+  knowledge pack. The pack is built at build time inside
+  `src/components/AvatorGuide.astro` from this repo's content collections,
+  so the Guide can only recommend pages that actually exist.
+- UI: `src/components/AvatorGuide.astro` + `src/scripts/avator-guide.ts` —
+  persistent across navigations; the conversation is kept in
+  `sessionStorage` on the visitor's device only.
+- Languages: English, Bangla and Banglish — replies mirror the visitor's
+  writing style.
+- Voice: tap-to-speak uses the browser's built-in speech recognition
+  (`SpeechRecognition`/`webkitSpeechRecognition`); the mic button only
+  appears where the browser supports it, and availability varies by
+  browser. Listen playback uses browser speech synthesis. Both are free,
+  on-device browser features.
+- The status line reads **"Local routing"** — the Guide is deterministic
+  keyword routing, not a language model, and the site never claims
+  otherwise.
+- Unit tests: `npm run test:guide` (dependency-free, runs on Node's
+  type-stripping).
 
 ## Deployment
 
