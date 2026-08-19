@@ -607,6 +607,41 @@ pre::selection {
     0 0 0 0.5px rgba(0, 0, 0, 0.8);
 }
 
+/* AVATOR Guide → Contact brief handoff (elements are created client-side,
+   so these styles live globally, not page-scoped) */
+.guide-brief-box {
+  margin-top: 3rem;
+  border: 1px solid var(--line-strong);
+  background: var(--ink-1);
+  padding: 1.6rem 1.5rem;
+  box-shadow:
+    inset 0 0.5px rgba(255, 255, 255, 0.18),
+    0 0 0 0.5px rgba(0, 0, 0, 0.8);
+  display: grid;
+  gap: 1.1rem;
+}
+
+.guide-brief-label {
+  color: var(--signal);
+  letter-spacing: 0.22em;
+}
+
+.guide-brief-pre {
+  font-family: var(--f-mono);
+  font-size: 0.78rem;
+  line-height: 1.7;
+  color: var(--bone-1);
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+}
+
+.guide-brief-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
 /* signal glow — a quiet pool of light, never neon */
 .glow {
   position: absolute;
